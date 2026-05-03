@@ -1,0 +1,30 @@
+Creative Commons Attribution 4.0 International (CC BY 4.0)
+
+This repository aggregates publicly released sperm whale coda datasets, all of
+which are themselves distributed under CC BY (or CC0 / Dryad equivalents) by
+their original authors. The aggregation, schema, and pipeline code are also
+released under CC BY 4.0.
+
+Attribution requirements:
+
+You must cite the underlying source publications when using this data:
+
+  - Sharma, P., Gero, S., Payne, R., Gruber, D. F., Rus, D., Torralba, A.,
+    & Andreas, J. (2024). Contextual and combinatorial structure in sperm
+    whale vocalisations. Nature Communications, 15(1), 3617.
+    doi:10.1038/s41467-024-47221-8
+
+  - Sharma, P., et al. (2025). [Sperm whale live birth coda recordings].
+    Scientific Reports. doi:10.1038/s41598-025-27438-3
+
+  - Gero, S., Bottcher, A., Whitehead, H., & Madsen, P. T. (2016). Socially
+    segregated, sympatric sperm whale clans in the Atlantic Ocean. Royal
+    Society Open Science, 3(6), 160061.
+    Data: Dryad doi:10.5061/dryad.53g73
+
+  - Gero, S., Whitehead, H., & Rendell, L. (2016). Individual, unit and vocal
+    clan level identity cues in sperm whale codas. Royal Society Open
+    Science, 3(1), 150372.
+    Data: Dryad doi:10.5061/dryad.ck4h0
+
+License text: https://creativecommons.org/licenses/by/4.0/
