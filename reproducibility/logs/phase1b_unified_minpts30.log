@@ -1,0 +1,54 @@
+loading unified + dominica join...
+  unified rows: 38,840
+  with CodaType ground truth: 8,719 (DSWP)
+  in 3..10 click range: 37,684
+
+running ELKI per length (xi=0.04, minpts=30):
+  ELKI: n=3 (4124 codas, minpts=30)...
+    -> 22 clusters in this bucket
+  ELKI: n=4 (4780 codas, minpts=30)...
+    -> 11 clusters in this bucket
+  ELKI: n=5 (18022 codas, minpts=30)...
+    -> 8 clusters in this bucket
+  ELKI: n=6 (3750 codas, minpts=30)...
+    -> 5 clusters in this bucket
+  ELKI: n=7 (2868 codas, minpts=30)...
+    -> 6 clusters in this bucket
+  ELKI: n=8 (2409 codas, minpts=30)...
+    -> 4 clusters in this bucket
+  ELKI: n=9 (1153 codas, minpts=30)...
+    -> 2 clusters in this bucket
+  ELKI: n=10 (578 codas, minpts=30)...
+    -> 5 clusters in this bucket
+
+=== per-bucket cluster counts on unified data ===
+  n=3:   4124 codas -> 22 clusters
+  n=4:   4780 codas -> 11 clusters
+  n=5:  18022 codas -> 8 clusters
+  n=6:   3750 codas -> 5 clusters
+  n=7:   2868 codas -> 6 clusters
+  n=8:   2409 codas -> 4 clusters
+  n=9:   1153 codas -> 2 clusters
+  n=10:    578 codas -> 5 clusters
+
+=== Phase 1b: DSWP rows still match Gero's CodaType? ===
+  rows evaluated (DSWP w/ truth + cluster): 8,704
+  correct: 5,302
+  accuracy: 60.91%
+  -> target >= 90% : FAIL
+
+  per-length:
+    n=3: 80/103 = 77.7%
+    n=4: 642/818 = 78.5%
+    n=5: 3658/6384 = 57.3%
+    n=6: 189/427 = 44.3%
+    n=7: 296/405 = 73.1%
+    n=8: 202/275 = 73.5%
+    n=9: 151/196 = 77.0%
+    n=10: 84/96 = 87.5%
+
+=== cluster anatomy on unified data ===
+  total clusters: 63
+  clusters that contain >=1 DSWP coda: 28
+  Pacific-only clusters (no DSWP overlap): 35
+  DSWP codas landing in NOISE-majority clusters: 1

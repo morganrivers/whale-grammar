@@ -1,0 +1,32 @@
+=== hybrid classifier ===
+loading unified + variance ...
+  unified rows: 38,840; variance rows: 36
+  τ-table: 25 (length, codatype) entries; τ range: 0.0092 – 0.1391
+
+[stage 1] anchoring Sharma 'real' labels ...
+  8,119 Sharma-real rows anchored
+
+[stage 2] Pacific kNN+τ match against Sharma-real ...
+  10,861 Pacific codas matched a Sharma type
+
+[stage 3] OPTICSxi discovery on Sharma-NOISE ∪ Pacific-residual
+  (this calls ELKI per length; cached at data/cache/optics_hybrid_pool_n*.npz)
+  -> 189 discovered clusters; 5,717 rows clustered, 12,987 NOISE
+
+[writing] assignments.csv + discovered_clusters.csv ...
+  -> data/diagnostics/hybrid_v1/
+
+=== four numbers ===
+1) Pacific matched to Sharma types: 10,861  / 28,980 = 37.5%
+2) Pacific in new discovered clusters:  5,583  / 28,980 = 19.3%
+3) Pool members remaining NOISE: 12,987  / 18,704 = 69.4%
+4) Sharma-NOISE second-chance:
+     clustered with Pacific:   134  / 600 = 22.3%
+     stayed NOISE:             451  / 600 = 75.2%
+
+=== piano-roll rendering ===
+  rendering 25 Sharma 'real' types ...
+  rendering 189 discovered clusters ...
+  rendering NOISE sample (12,987 total)
+
+artefacts under diagnostics/hybrid_v1/piano_rolls

@@ -5,30 +5,44 @@ writes `data/readable/whale_dialogues.txt`. This stage is fast — all the
 heavy work was done by the classifier — so iterate on rendering without
 re-running the segmenter.
 
-Each coda becomes a token of the form `<letter><digit>`:
+Each coda becomes a token of the form `<rubato><letters><digit>` (the rubato
+prefix is omitted when not applicable):
 
-  letter = chr('a' + rhythm)   (lowercase = unornamented or unknown,
-                                uppercase = extra_click==1)
-  digit  = `tempo` column 1..5 (Sharma 2024 buckets, computed by B_classify
-                                from coda_duration_s).
+  rubato  = `/`, `-`, `\\` or empty (B_classify's `rubato` column)
+  letters = base-26 encoding of `rhythm_class` (a..z then aa..zz). The
+            full coda_type_gero21 vocabulary is encoded — distinguishes
+            5R1 / 5R2 / 5R3 plus all discovered Pacific types like
+            5RP1, 5P2. Lowercase = unornamented or unknown, uppercase
+            = extra_click == 1.
+  digit   = `tempo` column 1..5 (Sharma 2024 buckets, computed by B_classify
+            from coda_duration_s).
 
-Codas without a rhythm classification render as `?`. Codas with rhythm but
-no ornament label (extra_click is <NA>, e.g. DSWP/Hersh rows lacking
-timing) render lowercase, since uppercase would be a false positive claim
-of ornamentation.
+The unified corpus has ~131 distinct rhythm_class values; the multi-
+letter base-26 encoder handles that vocabulary while keeping tokens
+compact and parseable. Decode integer codes via
+``data/classified/rhythm_class_index.csv``.
+
+Between adjacent codas a `Δt<seconds>` token marks the inter-coda
+interval (e.g. `Δt0.42`). When timestamps are missing — every Hersh
+recording, ~57 % of DSWP — the sentinel `Δt?` is used instead. Pauses
+exceeding ``PAUSE_NOTATION_S`` (10 s) override the Δt token with a
+human-readable pause annotation on its own line.
+
+Codas without a rhythm classification render as `?`. Codas with rhythm
+but no ornament label (extra_click is <NA>, e.g. Hersh rows lacking
+timing) render lowercase, since uppercase would be a false positive
+claim of ornamentation.
 
 Output layout: one section per (source, recording_or_date_group). Within
 each group, codas are ordered by `time_in_recording_s` if present,
 otherwise by `source_coda_id`. Speakers are labelled by `local_speaker_id`
-if present, then `whale_photo_id`, else `?`. Long pauses within timed
-groups are annotated.
+if present, then `whale_photo_id`, else `?`.
 
 Run standalone:
     python -m src.pipeline.C_render_readable
 """
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 
 from . import B_classify
@@ -39,13 +53,44 @@ OUT = REPO / "data" / "readable" / "whale_dialogues.txt"
 PAUSE_NOTATION_S = 10.0
 
 
-def coda_token(rhythm, extra_click, tempo) -> str:
-    if pd.isna(rhythm) or pd.isna(tempo):
+def _encode_rhythm(r: int) -> str:
+    """Indices 0..25 → ``a..z``; indices 26..701 → ``aa..zz``; etc.
+    Pacific extension can push the rhythm vocabulary well past 26 entries
+    (we observe ~160 distinct labels on the unified corpus), and a
+    multi-letter base-26 encoding stays compact and parseable while
+    preserving the single-token convention."""
+    if r < 0:
         return "?"
-    letter = chr(ord('a') + int(rhythm))
+    out = []
+    while True:
+        out.append(chr(ord('a') + (r % 26)))
+        r //= 26
+        if r == 0:
+            break
+        r -= 1  # 'aa' = 26, not 27, so subtract before continuing.
+    return "".join(reversed(out))
+
+
+def coda_token(rhythm_class, extra_click, tempo, rubato) -> str:
+    if pd.isna(rhythm_class) or pd.isna(tempo):
+        return "?"
+    letters = _encode_rhythm(int(rhythm_class))
     if pd.notna(extra_click) and int(extra_click) == 1:
-        letter = letter.upper()
-    return f"{letter}{int(tempo)}"
+        letters = letters.upper()
+    prefix = str(rubato) if pd.notna(rubato) and rubato in ("/", "-", "\\") else ""
+    return f"{prefix}{letters}{int(tempo)}"
+
+
+def dt_token(dt_seconds: float | None) -> str:
+    """Inter-coda time delta token. ``None`` (or non-finite) → ``Δt?``;
+    otherwise ``Δt{dt:.2f}`` clipped at zero."""
+    if dt_seconds is None:
+        return "Δt?"
+    if not (isinstance(dt_seconds, float) or isinstance(dt_seconds, int)):
+        return "Δt?"
+    if pd.isna(dt_seconds):
+        return "Δt?"
+    return f"Δt{max(float(dt_seconds), 0.0):.2f}"
 
 
 def speaker_label(row) -> str:
@@ -88,6 +133,7 @@ def render_group(rows, has_time, lines):
     last_speaker = None
     last_t = None
     buf = []
+    is_first = True
 
     def flush():
         if buf:
@@ -95,14 +141,25 @@ def render_group(rows, has_time, lines):
             buf.clear()
 
     for _, row in rows.iterrows():
-        token = coda_token(row.get("rhythm"), row.get("extra_click"), row.get("tempo"))
+        token = coda_token(row.get("rhythm_class"), row.get("extra_click"),
+                           row.get("tempo"), row.get("rubato"))
         speaker = speaker_label(row)
         t = row.get("time_in_recording_s") if has_time else None
 
-        if has_time and last_t is not None and pd.notna(t) and (t - last_t) > PAUSE_NOTATION_S:
-            flush()
-            lines.append(f"  {format_pause(float(t - last_t))}")
-            last_speaker = None
+        # Δt or pause annotation between this coda and the previous one.
+        # Pauses (> PAUSE_NOTATION_S) suppress the Δt token because the
+        # human-readable pause line already conveys the gap.
+        if not is_first:
+            dt_known = (has_time and last_t is not None and pd.notna(t))
+            if dt_known and (float(t) - last_t) > PAUSE_NOTATION_S:
+                flush()
+                lines.append(f"  {format_pause(float(t) - last_t)}")
+                last_speaker = None
+            else:
+                if speaker != last_speaker:
+                    flush()
+                    last_speaker = speaker
+                buf.append(dt_token(float(t) - last_t if dt_known else None))
 
         if speaker != last_speaker:
             flush()
@@ -111,6 +168,7 @@ def render_group(rows, has_time, lines):
         buf.append(token)
         if has_time and pd.notna(t):
             last_t = float(t)
+        is_first = False
     flush()
 
 
@@ -157,9 +215,9 @@ def main():
     render(df, OUT)
     keys = df.apply(group_key, axis=1)
     n_groups = df.assign(_g=keys).groupby(["source", "_g"]).ngroups
-    n_class = int(df["rhythm"].notna().sum())
+    n_class = int(df["rhythm_class"].notna().sum())
     print(f"C_render_readable: wrote {n_groups:,} groups, "
-          f"{n_class:,}/{len(df):,} codas with rhythm tokens "
+          f"{n_class:,}/{len(df):,} codas with rhythm_class tokens "
           f"-> {OUT.relative_to(REPO)}")
 
 

@@ -1,8 +1,25 @@
 __pycache__/
 *.pyc
-*.pyo
-.venv/
-venv/
-.env
-.ipynb_checkpoints/
-.DS_Store
+.pytest_cache/
+
+# Vendored Java runtime + ELKI bundle (large, recreated by setup)
+vendor/jre8/
+vendor/jre8
+vendor/jdk*
+vendor/jre8.tar.gz
+vendor/elki/*.jar
+
+# Per-run ELKI scratch
+/tmp_elki/
+
+# Regenerable OPTICS pool caches
+data/cache/
+
+# Large diagnostic visualizations (CSV/MD summaries are kept)
+data/diagnostics/pca_plots/
+data/diagnostics/hybrid_v1/piano_rolls/
+data/diagnostics/variance_pca/
+data/diagnostics/**/*.png
+
+# Claude Code session state
+.claude/

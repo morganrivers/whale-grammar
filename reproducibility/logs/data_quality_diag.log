@@ -1,0 +1,57 @@
+=== §0 data-quality diagnostics ===
+loading data/classified/codas_classified.csv ...
+  non-DSWP rows: 29,968   NOISE: 10,119 (33.77%)
+
+[diag 1] NOISE rate by recording_id ...
+  recordings: 268; top 10 by NOISE rate (rate, n_codas, source):
+    245                             100.00%      1  hersh2022_pacific
+    134                             100.00%     13  hersh2022_pacific
+    161                             100.00%      1  hersh2022_pacific
+    30                              100.00%      4  hersh2022_pacific
+    113                             100.00%      1  hersh2022_pacific
+    34                              83.33%      6  hersh2022_pacific
+    230                             78.95%     38  hersh2022_pacific
+    249                             78.26%     46  hersh2022_pacific
+    152                             75.00%      4  hersh2022_pacific
+    153                             74.09%    247  hersh2022_pacific
+  median recording NOISE rate: 28.12%
+  IQR: 14.29% – 46.43%
+
+[diag 2] NOISE rate by clan ...
+    EC1      47.41%  (2,717/5,731)
+    PALI     47.32%  (1,005/2,124)
+    FP       45.25%  (1,172/2,590)
+    REG      31.07%  (2,575/8,289)
+    nan      29.62%  (202/682)
+    RI       28.89%  (513/1,776)
+    SH       25.42%  (1,380/5,428)
+    PO       22.32%  (465/2,083)
+    SI        7.11%  (90/1,265)
+
+[diag 3] classifier_distance distribution ...
+subset     n     mean       p5      p10      p25      p50      p75      p90      p95      p99
+ noise 10119 0.189095 0.106538 0.111753 0.126270 0.149459 0.211545 0.340731 0.405362 0.527307
+ec-knn 13161 0.083204 0.022057 0.029781 0.050646 0.081431 0.110073 0.142513 0.158755 0.181358
+
+[diag 4] PCA of NOISE codas (per length) ...
+  n=3:   757 NOISE codas; var(pc1)/var(pc2) =  1.07
+  n=4:  1214 NOISE codas; var(pc1)/var(pc2) =  1.52
+  n=5:  5160 NOISE codas; var(pc1)/var(pc2) =  1.32
+  n=6:  1775 NOISE codas; var(pc1)/var(pc2) =  1.48
+  n=7:  1021 NOISE codas; var(pc1)/var(pc2) =  4.52
+  n=8:   111 NOISE codas; var(pc1)/var(pc2) =  1.96
+  n=9:    47 NOISE codas; var(pc1)/var(pc2) =  1.67
+  n=10:    34 NOISE codas; var(pc1)/var(pc2) =  3.20
+
+[diag 5] echolocation sanity ...
+ n_clicks  n_noise  n_echo_like  echo_rate_in_noise
+        8      111            0            0.000000
+        9       47            0            0.000000
+       10       34            1            0.029412
+
+artefacts: data/diagnostics/
+  distance_distribution.csv
+  echolocation_check.csv
+  noise_by_clan.csv
+  noise_by_recording.csv
+  noise_pca.csv

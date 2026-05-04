@@ -45,5 +45,11 @@ def training_file(name: str, refresh: bool = False) -> Path:
     return _fetch(f"data/raw/{name}", refresh=refresh)
 
 
+def dominica_codas_csv(refresh: bool = False) -> Path:
+    """Gero's published EC coda labels (CodaType column = 21 non-NOISE types
+    + *-NOISE flags). Ground truth for the OPTICSxi reverse-engineering."""
+    return _fetch("data/raw/dswp_dominica_codas.csv", refresh=refresh)
+
+
 def load(refresh: bool = False) -> pd.DataFrame:
     return pd.read_csv(unified_csv(refresh=refresh), low_memory=False)

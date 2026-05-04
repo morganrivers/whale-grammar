@@ -1,0 +1,303 @@
+{
+  "folds": [
+    {
+      "M0_majority": {
+        "accuracy": 0.3034740166523112,
+        "bits_per_token": 4.491977298321442
+      },
+      "M1_markov1": {
+        "accuracy": 0.4554981337927074,
+        "bits_per_token": 3.4171832479208644
+      },
+      "M2_markov2": {
+        "accuracy": 0.46798736721217343,
+        "bits_per_token": 3.659586964520528
+      },
+      "M3_MLP_S": {
+        "accuracy": 0.48262991673844385,
+        "bits_per_token": 2.869275042851102,
+        "n_params": 151939
+      },
+      "M4_MLP_M": {
+        "accuracy": 0.49368360608670686,
+        "bits_per_token": 2.8458649383696097,
+        "n_params": 320131
+      },
+      "M5_MLP_L": {
+        "accuracy": 0.4819121447028424,
+        "bits_per_token": 2.9113538082853303,
+        "n_params": 721795
+      },
+      "M6_EmbMLP": {
+        "accuracy": 0.49497559666633606,
+        "bits_per_token": 2.8400514994095207,
+        "n_params": 119940
+      },
+      "M7_MiniTfm": {
+        "accuracy": 0.4846396744251251,
+        "bits_per_token": 2.7991554008955517,
+        "n_params": 117508
+      },
+      "_meta": {
+        "n_train": 31367,
+        "n_test": 6966,
+        "V": 132,
+        "fold": 0,
+        "seconds": 209.1
+      }
+    },
+    {
+      "M0_majority": {
+        "accuracy": 0.17089618456078084,
+        "bits_per_token": 5.246179684038364
+      },
+      "M1_markov1": {
+        "accuracy": 0.3611357586512866,
+        "bits_per_token": 4.183715151054505
+      },
+      "M2_markov2": {
+        "accuracy": 0.36539485359361135,
+        "bits_per_token": 4.6583183365584
+      },
+      "M3_MLP_S": {
+        "accuracy": 0.3971606033717835,
+        "bits_per_token": 3.6476245138774326,
+        "n_params": 150850
+      },
+      "M4_MLP_M": {
+        "accuracy": 0.3937888198757764,
+        "bits_per_token": 3.652122840235819,
+        "n_params": 317954
+      },
+      "M5_MLP_L": {
+        "accuracy": 0.3948535936113576,
+        "bits_per_token": 3.721357731163736,
+        "n_params": 717570
+      },
+      "M6_EmbMLP": {
+        "accuracy": 0.3893522620201111,
+        "bits_per_token": 3.6485930199628904,
+        "n_params": 119940
+      },
+      "M7_MiniTfm": {
+        "accuracy": 0.3941437304019928,
+        "bits_per_token": 3.5307711455097976,
+        "n_params": 117508
+      },
+      "_meta": {
+        "n_train": 32698,
+        "n_test": 5635,
+        "V": 132,
+        "fold": 1,
+        "seconds": 204.2
+      }
+    },
+    {
+      "M0_majority": {
+        "accuracy": 0.32,
+        "bits_per_token": 4.747189201725315
+      },
+      "M1_markov1": {
+        "accuracy": 0.4451470588235294,
+        "bits_per_token": 3.632354251394815
+      },
+      "M2_markov2": {
+        "accuracy": 0.45955882352941174,
+        "bits_per_token": 4.053674762207021
+      },
+      "M3_MLP_S": {
+        "accuracy": 0.48426470588235293,
+        "bits_per_token": 3.195281839465132,
+        "n_params": 151939
+      },
+      "M4_MLP_M": {
+        "accuracy": 0.48676470588235293,
+        "bits_per_token": 3.1491377158603284,
+        "n_params": 320131
+      },
+      "M5_MLP_L": {
+        "accuracy": 0.4772058823529412,
+        "bits_per_token": 3.227724985072278,
+        "n_params": 721795
+      },
+      "M6_EmbMLP": {
+        "accuracy": 0.4795588254928589,
+        "bits_per_token": 3.211005522587086,
+        "n_params": 119940
+      },
+      "M7_MiniTfm": {
+        "accuracy": 0.48750001192092896,
+        "bits_per_token": 3.149851243662685,
+        "n_params": 117508
+      },
+      "_meta": {
+        "n_train": 31533,
+        "n_test": 6800,
+        "V": 132,
+        "fold": 2,
+        "seconds": 193.0
+      }
+    },
+    {
+      "M0_majority": {
+        "accuracy": 0.20855694692903995,
+        "bits_per_token": 4.917024418669074
+      },
+      "M1_markov1": {
+        "accuracy": 0.4165175909361956,
+        "bits_per_token": 3.8017271932619345
+      },
+      "M2_markov2": {
+        "accuracy": 0.42322599880739414,
+        "bits_per_token": 4.200504694644283
+      },
+      "M3_MLP_S": {
+        "accuracy": 0.45930232558139533,
+        "bits_per_token": 3.332452907174856,
+        "n_params": 151939
+      },
+      "M4_MLP_M": {
+        "accuracy": 0.46124031007751937,
+        "bits_per_token": 3.3554310450365916,
+        "n_params": 320131
+      },
+      "M5_MLP_L": {
+        "accuracy": 0.4576624925462135,
+        "bits_per_token": 3.394827812150738,
+        "n_params": 721795
+      },
+      "M6_EmbMLP": {
+        "accuracy": 0.4518485367298126,
+        "bits_per_token": 3.3942396224346414,
+        "n_params": 119940
+      },
+      "M7_MiniTfm": {
+        "accuracy": 0.45825880765914917,
+        "bits_per_token": 3.284504028259816,
+        "n_params": 117508
+      },
+      "_meta": {
+        "n_train": 31625,
+        "n_test": 6708,
+        "V": 132,
+        "fold": 3,
+        "seconds": 210.4
+      }
+    },
+    {
+      "M0_majority": {
+        "accuracy": 0.2667702879581152,
+        "bits_per_token": 4.786082508464732
+      },
+      "M1_markov1": {
+        "accuracy": 0.4743946335078534,
+        "bits_per_token": 3.5848337093226244
+      },
+      "M2_markov2": {
+        "accuracy": 0.4660503926701571,
+        "bits_per_token": 3.978811235216916
+      },
+      "M3_MLP_S": {
+        "accuracy": 0.5019633507853403,
+        "bits_per_token": 3.3428709307525675,
+        "n_params": 147327
+      },
+      "M4_MLP_M": {
+        "accuracy": 0.5079352094240838,
+        "bits_per_token": 3.3345673758600034,
+        "n_params": 310911
+      },
+      "M5_MLP_L": {
+        "accuracy": 0.49975458115183247,
+        "bits_per_token": 3.4014448862406077,
+        "n_params": 703871
+      },
+      "M6_EmbMLP": {
+        "accuracy": 0.4993455410003662,
+        "bits_per_token": 3.273974906408693,
+        "n_params": 119940
+      },
+      "M7_MiniTfm": {
+        "accuracy": 0.49574607610702515,
+        "bits_per_token": 3.1663918470920667,
+        "n_params": 117508
+      },
+      "_meta": {
+        "n_train": 26109,
+        "n_test": 12224,
+        "V": 132,
+        "fold": 4,
+        "seconds": 189.7
+      }
+    }
+  ],
+  "summary": {
+    "M0_majority": {
+      "bits_per_token_mean": 4.837690622243786,
+      "bits_per_token_std": 0.24638537770013563,
+      "perplexity_mean": 28.594992504173106,
+      "accuracy_mean": 0.25393948722004944,
+      "accuracy_std": 0.05645893283127047,
+      "n_params": null
+    },
+    "M1_markov1": {
+      "bits_per_token_mean": 3.7239627105909485,
+      "bits_per_token_std": 0.2604927057649173,
+      "perplexity_mean": 13.213701099381176,
+      "accuracy_mean": 0.43053863514231444,
+      "accuracy_std": 0.039428619437727734,
+      "n_params": null
+    },
+    "M2_markov2": {
+      "bits_per_token_mean": 4.11017919862943,
+      "bits_per_token_std": 0.3262204360078201,
+      "perplexity_mean": 17.2697967500054,
+      "accuracy_mean": 0.43644348716254955,
+      "accuracy_std": 0.03906024661495768,
+      "n_params": null
+    },
+    "M3_MLP_S": {
+      "bits_per_token_mean": 3.277501046824218,
+      "bits_per_token_std": 0.2520685533432955,
+      "perplexity_mean": 9.69674837160397,
+      "accuracy_mean": 0.46506418047186315,
+      "accuracy_std": 0.03655915423314438,
+      "n_params": 151939
+    },
+    "M4_MLP_M": {
+      "bits_per_token_mean": 3.267424783072471,
+      "bits_per_token_std": 0.2653112730480689,
+      "perplexity_mean": 9.629259002594255,
+      "accuracy_mean": 0.46868253026928786,
+      "accuracy_std": 0.04039120247194763,
+      "n_params": 320131
+    },
+    "M5_MLP_L": {
+      "bits_per_token_mean": 3.331341844582538,
+      "bits_per_token_std": 0.2638877414815077,
+      "perplexity_mean": 10.065464489955067,
+      "accuracy_mean": 0.4622777388730375,
+      "accuracy_std": 0.0362772350935435,
+      "n_params": 721795
+    },
+    "M6_EmbMLP": {
+      "bits_per_token_mean": 3.273572914160566,
+      "bits_per_token_std": 0.2634601265373992,
+      "perplexity_mean": 9.67038222728689,
+      "accuracy_mean": 0.463016152381897,
+      "accuracy_std": 0.04041280730808975,
+      "n_params": 119940
+    },
+    "M7_MiniTfm": {
+      "bits_per_token_mean": 3.1861347330839833,
+      "bits_per_token_std": 0.23660517817495283,
+      "perplexity_mean": 9.1016917889876,
+      "accuracy_mean": 0.4640576601028442,
+      "accuracy_std": 0.03714539846887851,
+      "n_params": 117508
+    }
+  },
+  "k": 8,
+  "target": "Coda1",
+  "V": 132
+}

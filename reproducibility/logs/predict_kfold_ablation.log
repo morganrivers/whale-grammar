@@ -1,0 +1,8 @@
+fold 0: B0_2L_d64_K8: bpt=2.815 acc=0.483  B1_2L_d64_K8_DT: bpt=2.784 acc=0.498  B2_4L_d64_K8: bpt=2.813 acc=0.489  B3_4L_d64_K8_DT: bpt=2.790 acc=0.491  B4_3L_d32_K25_DT: bpt=2.755 acc=0.498  (596.2s)
+fold 1: B0_2L_d64_K8: bpt=3.537 acc=0.386  B1_2L_d64_K8_DT: bpt=3.504 acc=0.391  B2_4L_d64_K8: bpt=3.550 acc=0.392  B3_4L_d64_K8_DT: bpt=3.515 acc=0.398  B4_3L_d32_K25_DT: bpt=3.490 acc=0.401  (655.8s)
+fold 2: B0_2L_d64_K8: bpt=3.112 acc=0.485  B1_2L_d64_K8_DT: bpt=3.096 acc=0.491  B2_4L_d64_K8: bpt=3.110 acc=0.486  B3_4L_d64_K8_DT: bpt=3.086 acc=0.496  B4_3L_d32_K25_DT: bpt=3.082 acc=0.490  (607.5s)
+fold 3: B0_2L_d64_K8: bpt=3.287 acc=0.459  B1_2L_d64_K8_DT: bpt=3.298 acc=0.444  B2_4L_d64_K8: bpt=3.315 acc=0.458  B3_4L_d64_K8_DT: bpt=3.325 acc=0.457  B4_3L_d32_K25_DT: bpt=3.300 acc=0.463  (622.1s)
+fold 4: B0_2L_d64_K8: bpt=3.153 acc=0.499  B1_2L_d64_K8_DT: bpt=3.196 acc=0.500  B2_4L_d64_K8: bpt=3.160 acc=0.493  B3_4L_d64_K8_DT: bpt=3.186 acc=0.488  B4_3L_d32_K25_DT: bpt=3.226 acc=0.486  (583.1s)
+
+wrote /home/dmrivers/Code/whale-grammar/outputs/grammar/predict_results_ablation.json
+wrote /home/dmrivers/Code/whale-grammar/outputs/grammar/predict_results_ablation.md

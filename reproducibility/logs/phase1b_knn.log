@@ -1,0 +1,59 @@
+loading...
+  unified rows: 38,840, with CodaType truth: 8,719
+
+running per-length DSWP OPTICS sanity check + kNN classify (xi=0.04, minpts=10, k=5):
+  n=3: DSWP   103 (ELKI sanity 93.2%), unified  4124 classified
+  n=4: DSWP   818 (ELKI sanity 95.6%), unified  4780 classified
+  n=5: DSWP  6384 (ELKI sanity 95.8%), unified 18022 classified
+  n=6: DSWP   427 (ELKI sanity 97.9%), unified  3750 classified
+  n=7: DSWP   405 (ELKI sanity 94.8%), unified  2868 classified
+  n=8: DSWP   275 (ELKI sanity 97.8%), unified  2409 classified
+  n=9: DSWP   196 (ELKI sanity 99.0%), unified  1153 classified
+  n=10: DSWP    96 (ELKI sanity 96.9%), unified   578 classified
+
+=== DSWP accuracy (kNN, k=5) ===
+  8,549/8,704 = 98.22%
+
+=== DSWP accuracy (leave-one-out kNN, k=5) ===
+  n=3: 98/103 = 95.1%
+  n=4: 785/818 = 96.0%
+  n=5: 6266/6384 = 98.2%
+  n=6: 414/427 = 97.0%
+  n=7: 388/405 = 95.8%
+  n=8: 264/275 = 96.0%
+  n=9: 191/196 = 97.4%
+  n=10: 93/96 = 96.9%
+  total: 8499/8704 = 97.64%
+  -> target >= 90% : PASS
+
+=== Pacific (Hersh + birth) classification summary ===
+  Pacific codas classified: 28,980
+  top assigned CodaTypes:
+5-NOISE    4609
+1+1+3      3909
+3D         2230
+6R         1760
+4R2        1740
+3-NOISE    1704
+5R3        1453
+8R         1397
+5R2        1267
+6-NOISE    1063
+7i          806
+4R1         744
+7R          741
+4-NOISE     708
+7D1         694
+
+  nearest-neighbour distance percentiles (Pacific):
+     50th: 0.0314
+     75th: 0.0602
+     90th: 0.1390
+     95th: 0.2374
+     99th: 0.3756
+  for reference, DSWP nearest-neighbour distance percentiles:
+     50th: 0.0000
+     75th: 0.0000
+     90th: 0.0000
+     95th: 0.0000
+     99th: 0.0000

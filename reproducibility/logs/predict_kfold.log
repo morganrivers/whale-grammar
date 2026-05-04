@@ -1,0 +1,8 @@
+fold 0: M0_majority: bpt=4.492 acc=0.303  M1_markov1: bpt=3.417 acc=0.455  M2_markov2: bpt=3.660 acc=0.468  M3_MLP_S: bpt=2.869 acc=0.483  M4_MLP_M: bpt=2.846 acc=0.494  M5_MLP_L: bpt=2.911 acc=0.482  M6_EmbMLP: bpt=2.840 acc=0.495  M7_MiniTfm: bpt=2.799 acc=0.485  (209.1s)
+fold 1: M0_majority: bpt=5.246 acc=0.171  M1_markov1: bpt=4.184 acc=0.361  M2_markov2: bpt=4.658 acc=0.365  M3_MLP_S: bpt=3.648 acc=0.397  M4_MLP_M: bpt=3.652 acc=0.394  M5_MLP_L: bpt=3.721 acc=0.395  M6_EmbMLP: bpt=3.649 acc=0.389  M7_MiniTfm: bpt=3.531 acc=0.394  (204.2s)
+fold 2: M0_majority: bpt=4.747 acc=0.320  M1_markov1: bpt=3.632 acc=0.445  M2_markov2: bpt=4.054 acc=0.460  M3_MLP_S: bpt=3.195 acc=0.484  M4_MLP_M: bpt=3.149 acc=0.487  M5_MLP_L: bpt=3.228 acc=0.477  M6_EmbMLP: bpt=3.211 acc=0.480  M7_MiniTfm: bpt=3.150 acc=0.488  (193.0s)
+fold 3: M0_majority: bpt=4.917 acc=0.209  M1_markov1: bpt=3.802 acc=0.417  M2_markov2: bpt=4.201 acc=0.423  M3_MLP_S: bpt=3.332 acc=0.459  M4_MLP_M: bpt=3.355 acc=0.461  M5_MLP_L: bpt=3.395 acc=0.458  M6_EmbMLP: bpt=3.394 acc=0.452  M7_MiniTfm: bpt=3.285 acc=0.458  (210.4s)
+fold 4: M0_majority: bpt=4.786 acc=0.267  M1_markov1: bpt=3.585 acc=0.474  M2_markov2: bpt=3.979 acc=0.466  M3_MLP_S: bpt=3.343 acc=0.502  M4_MLP_M: bpt=3.335 acc=0.508  M5_MLP_L: bpt=3.401 acc=0.500  M6_EmbMLP: bpt=3.274 acc=0.499  M7_MiniTfm: bpt=3.166 acc=0.496  (189.7s)
+
+wrote /home/dmrivers/Code/whale-grammar/outputs/grammar/predict_results_unified.json
+wrote /home/dmrivers/Code/whale-grammar/outputs/grammar/predict_results_unified.md

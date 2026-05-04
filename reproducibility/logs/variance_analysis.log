@@ -1,0 +1,45 @@
+=== §4 variance analysis ===
+loading codas_unified.csv + dswp_dominica_codas.csv ...
+  unified rows: 38,840; DSWP CodaType truth: 8,719
+
+[§4.1] within-DSWP variance per CodaType ...
+  36 (length, codatype) rows; 33 unique types (8 NOISE).
+  r95     across types: median=0.1332  p90=0.3904
+  nosc_p95 across types: median=0.0489  p90=0.2248
+  -> data/diagnostics/dswp_variance.csv
+
+[§4.2] cross-corpus distances ...
+  28,980 Pacific rows classified
+  dswp_nn_dist percentiles (Pacific):
+    p50: 0.0314
+    p75: 0.0602
+    p90: 0.1390
+    p95: 0.2374
+    p99: 0.3756
+  pred_centroid_dist percentiles:
+    p50: 0.1277
+    p90: 0.2953
+    p99: 0.5455
+  margin percentiles:
+    p 5: -0.1603
+    p50: 0.0427
+    p95: 0.2007
+  -> data/diagnostics/pacific_distances.csv
+
+[§4.3] per-clan summary ...
+  clan            n   top5cov  within_var   nn_p50   nn_p90
+  REG          8108    64.2%      0.1326   0.0290   0.0547
+  EC1-birth    5551    88.9%      0.1427   0.0122   0.0371
+  SH           5153    67.9%      0.1827   0.0300   0.1475
+  FP           2564    67.0%      0.2959   0.1725   0.3603
+  PALI         2059    60.1%      0.1408   0.0513   0.1145
+  PO           1986    68.6%      0.1750   0.0901   0.1466
+  RI           1750    57.0%      0.1899   0.0387   0.1020
+  SI           1209    83.1%      0.1683   0.0564   0.1543
+  (NaN)         600    43.0%      0.2414   0.0374   0.1529
+  -> data/diagnostics/clan_summary.csv
+
+[plots] per-length DSWP PCA scatter ...
+  -> data/diagnostics/variance_pca/
+[plots] per-clan stacked bar ...
+  -> data/diagnostics/clan_bars.png

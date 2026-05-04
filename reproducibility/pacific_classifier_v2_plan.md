@@ -1,5 +1,12 @@
 # Pacific classifier v2 — forward plan
 
+> **Status (2026-05-04): superseded by
+> `whale_grammar_transformer_plan.md`.** Phase 1/1b history (variance
+> analysis, OPTICS sweep) remains here for context; the active plan now
+> covers Stages 1–4 of porting + retraining the MiniTransformer on the
+> unified corpus. Numeric acceptance gates and current artefact paths are
+> in `whale_grammar_transformer_plan.md`.
+
 Frozen 2026-05-04. Reader: assume **no memory** of the conversations that
 produced Phase 1, Phase 1b, `next_phases_plan.md`, or
 `next_phases_implementation_notes.md`. Read those files in this order

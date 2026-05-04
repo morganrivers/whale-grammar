@@ -1,0 +1,234 @@
+{
+  "folds": [
+    {
+      "B0_2L_d64_K8": {
+        "accuracy": 0.4832041263580322,
+        "bits_per_token": 2.814601678717493,
+        "n_params": 117508
+      },
+      "B1_2L_d64_K8_DT": {
+        "accuracy": 0.4975595772266388,
+        "bits_per_token": 2.7838105928376193,
+        "n_params": 117700
+      },
+      "B2_4L_d64_K8": {
+        "accuracy": 0.489376962184906,
+        "bits_per_token": 2.8134659052911952,
+        "n_params": 217476
+      },
+      "B3_4L_d64_K8_DT": {
+        "accuracy": 0.49109962582588196,
+        "bits_per_token": 2.789857158876654,
+        "n_params": 217668
+      },
+      "B4_3L_d32_K25_DT": {
+        "accuracy": 0.4977031350135803,
+        "bits_per_token": 2.7546865347925586,
+        "n_params": 47588
+      },
+      "_meta": {
+        "n_train_k8": 31367,
+        "n_test_k8": 6966,
+        "n_train_k25": 31367,
+        "n_test_k25": 6966,
+        "V_k8": 132,
+        "V_k25": 132,
+        "fold": 0,
+        "seconds": 596.2
+      }
+    },
+    {
+      "B0_2L_d64_K8": {
+        "accuracy": 0.38562554121017456,
+        "bits_per_token": 3.53677746760853,
+        "n_params": 117508
+      },
+      "B1_2L_d64_K8_DT": {
+        "accuracy": 0.3913043439388275,
+        "bits_per_token": 3.5036068297713183,
+        "n_params": 117700
+      },
+      "B2_4L_d64_K8": {
+        "accuracy": 0.39219164848327637,
+        "bits_per_token": 3.5497717887771207,
+        "n_params": 217476
+      },
+      "B3_4L_d64_K8_DT": {
+        "accuracy": 0.3976929783821106,
+        "bits_per_token": 3.515295114689257,
+        "n_params": 217668
+      },
+      "B4_3L_d32_K25_DT": {
+        "accuracy": 0.4012422263622284,
+        "bits_per_token": 3.4904491250844085,
+        "n_params": 47588
+      },
+      "_meta": {
+        "n_train_k8": 32698,
+        "n_test_k8": 5635,
+        "n_train_k25": 32698,
+        "n_test_k25": 5635,
+        "V_k8": 132,
+        "V_k25": 132,
+        "fold": 1,
+        "seconds": 655.8
+      }
+    },
+    {
+      "B0_2L_d64_K8": {
+        "accuracy": 0.4852941036224365,
+        "bits_per_token": 3.1118654355666164,
+        "n_params": 117508
+      },
+      "B1_2L_d64_K8_DT": {
+        "accuracy": 0.49117645621299744,
+        "bits_per_token": 3.0959745825921945,
+        "n_params": 117700
+      },
+      "B2_4L_d64_K8": {
+        "accuracy": 0.486176460981369,
+        "bits_per_token": 3.109604207673072,
+        "n_params": 217476
+      },
+      "B3_4L_d64_K8_DT": {
+        "accuracy": 0.49617648124694824,
+        "bits_per_token": 3.0858331096361167,
+        "n_params": 217668
+      },
+      "B4_3L_d32_K25_DT": {
+        "accuracy": 0.4904411733150482,
+        "bits_per_token": 3.0818255699057113,
+        "n_params": 47588
+      },
+      "_meta": {
+        "n_train_k8": 31533,
+        "n_test_k8": 6800,
+        "n_train_k25": 31533,
+        "n_test_k25": 6800,
+        "V_k8": 132,
+        "V_k25": 132,
+        "fold": 2,
+        "seconds": 607.5
+      }
+    },
+    {
+      "B0_2L_d64_K8": {
+        "accuracy": 0.4587060213088989,
+        "bits_per_token": 3.2873702911190956,
+        "n_params": 117508
+      },
+      "B1_2L_d64_K8_DT": {
+        "accuracy": 0.4440965950489044,
+        "bits_per_token": 3.297845066452546,
+        "n_params": 117700
+      },
+      "B2_4L_d64_K8": {
+        "accuracy": 0.45810970664024353,
+        "bits_per_token": 3.314506057737531,
+        "n_params": 217476
+      },
+      "B3_4L_d64_K8_DT": {
+        "accuracy": 0.4566189646720886,
+        "bits_per_token": 3.3247582875207646,
+        "n_params": 217668
+      },
+      "B4_3L_d32_K25_DT": {
+        "accuracy": 0.4634764492511749,
+        "bits_per_token": 3.2996931920187174,
+        "n_params": 47588
+      },
+      "_meta": {
+        "n_train_k8": 31625,
+        "n_test_k8": 6708,
+        "n_train_k25": 31625,
+        "n_test_k25": 6708,
+        "V_k8": 132,
+        "V_k25": 132,
+        "fold": 3,
+        "seconds": 622.1
+      }
+    },
+    {
+      "B0_2L_d64_K8": {
+        "accuracy": 0.49942734837532043,
+        "bits_per_token": 3.152662128108387,
+        "n_params": 117508
+      },
+      "B1_2L_d64_K8_DT": {
+        "accuracy": 0.49983638525009155,
+        "bits_per_token": 3.1961396862118066,
+        "n_params": 117700
+      },
+      "B2_4L_d64_K8": {
+        "accuracy": 0.4932918846607208,
+        "bits_per_token": 3.1601942802855745,
+        "n_params": 217476
+      },
+      "B3_4L_d64_K8_DT": {
+        "accuracy": 0.4881380796432495,
+        "bits_per_token": 3.1862929915193074,
+        "n_params": 217668
+      },
+      "B4_3L_d32_K25_DT": {
+        "accuracy": 0.4860111176967621,
+        "bits_per_token": 3.225724141813227,
+        "n_params": 47588
+      },
+      "_meta": {
+        "n_train_k8": 26109,
+        "n_test_k8": 12224,
+        "n_train_k25": 26109,
+        "n_test_k25": 12224,
+        "V_k8": 132,
+        "V_k25": 132,
+        "fold": 4,
+        "seconds": 583.1
+      }
+    }
+  ],
+  "summary": {
+    "B0_2L_d64_K8": {
+      "bits_per_token_mean": 3.1806554002240244,
+      "bits_per_token_std": 0.23567859655346307,
+      "perplexity_mean": 9.067189269562968,
+      "accuracy_mean": 0.46245142817497253,
+      "accuracy_std": 0.04058552933905923,
+      "n_params": 117508
+    },
+    "B1_2L_d64_K8_DT": {
+      "bits_per_token_mean": 3.175475351573097,
+      "bits_per_token_std": 0.23782064011946594,
+      "perplexity_mean": 9.034691575990374,
+      "accuracy_mean": 0.4647946715354919,
+      "accuracy_std": 0.042015944421816,
+      "n_params": 117700
+    },
+    "B2_4L_d64_K8": {
+      "bits_per_token_mean": 3.189508447952899,
+      "bits_per_token_std": 0.24251436210084718,
+      "perplexity_mean": 9.123000827523114,
+      "accuracy_mean": 0.46382933259010317,
+      "accuracy_std": 0.03790722729232154,
+      "n_params": 217476
+    },
+    "B3_4L_d64_K8_DT": {
+      "bits_per_token_mean": 3.1804073324484197,
+      "bits_per_token_std": 0.24269132147840417,
+      "perplexity_mean": 9.065630323256485,
+      "accuracy_mean": 0.4659452259540558,
+      "accuracy_std": 0.036836242567578316,
+      "n_params": 217668
+    },
+    "B4_3L_d32_K25_DT": {
+      "bits_per_token_mean": 3.170475712722925,
+      "bits_per_token_std": 0.24611867820069197,
+      "perplexity_mean": 9.00343617153593,
+      "accuracy_mean": 0.4677748203277588,
+      "accuracy_std": 0.0351769588597503,
+      "n_params": 47588
+    }
+  },
+  "target": "Coda1",
+  "V_k8": 132,
+  "V_k25": 132
+}
