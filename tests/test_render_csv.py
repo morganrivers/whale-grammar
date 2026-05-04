@@ -3,14 +3,17 @@
 Validates ``data/classified/whale_dialogues.csv`` (produced by
 ``python -m src.pipeline.E_render_csv``):
 
-* Schema matches whale-gpt's expected columns plus ``DeltaTime``.
-* Hersh rows always have ``Coda2 = 98`` (no timestamps to detect
-  simultaneity), ``DeltaTime = -1`` (no time deltas), and
-  ``Ornamentation1 = 0`` (Sharma §5 rule needs timestamps).
+* Schema matches the whale-gpt-style 6-column layout plus
+  ``has_timestamps``.
+* Hersh rows always have ``Synchrony = 0`` (no whale ID, no timestamps),
+  ``TimeDelta = -1`` (no time deltas), ``Ornamentation = 0`` (Sharma §5
+  rule needs timestamps), ``Whale`` ending in ``::UNK``, and
+  ``has_timestamps = 0``.
 * Sharma DSWP / birth rows have a meaningful share of non-``-1``
-  ``DeltaTime`` values, given their timestamp coverage (43 % DSWP,
+  ``TimeDelta`` values, given their timestamp coverage (43 % DSWP,
   100 % birth).
-* ``Coda1`` integers decode through ``rhythm_class_index.csv``.
+* ``Coda`` integers decode through ``rhythm_class_index.csv``.
+* ``Whale`` strings decode through ``whale_id_index.csv``.
 * ``itemPosition`` is contiguous (0..n-1) within each sequence.
 """
 from __future__ import annotations
@@ -23,12 +26,12 @@ import pytest
 REPO = Path(__file__).resolve().parents[1]
 CSV_OUT = REPO / "data" / "classified" / "whale_dialogues.csv"
 RHYTHM_INDEX = REPO / "data" / "classified" / "rhythm_class_index.csv"
+WHALE_INDEX = REPO / "data" / "classified" / "whale_id_index.csv"
 
 REQUIRED_COLUMNS = [
     "sequenceId", "itemPosition",
-    "Coda1", "Ornamentation1", "Duration1",
-    "Coda2", "Ornamentation2", "Duration2",
-    "DeltaTime",
+    "Whale", "Coda", "Ornamentation", "Synchrony", "Duration", "TimeDelta",
+    "has_timestamps",
 ]
 SILENCE_CODE = 98
 
@@ -51,17 +54,23 @@ def test_schema_matches():
     )
 
 
-def test_hersh_rows_have_no_timestamps():
+def test_hersh_rows_lack_time_features():
     df = _load()
     hersh = df[_source(df) == "hersh2022_pacific"]
-    assert (hersh["Coda2"] == SILENCE_CODE).all(), (
-        "Hersh has no timestamps so Coda2 should always be silence"
+    assert (hersh["Synchrony"] == 0).all(), (
+        "Hersh has no whale ID + no timestamps; Synchrony must be 0"
     )
-    assert (hersh["DeltaTime"] == -1.0).all(), (
-        "Hersh DeltaTime should always be -1 sentinel"
+    assert (hersh["TimeDelta"] == -1.0).all(), (
+        "Hersh TimeDelta should always be -1 sentinel"
     )
-    assert (hersh["Ornamentation1"] == 0).all(), (
-        "Hersh Ornamentation1 should always be 0 (no per-coda timestamps)"
+    assert (hersh["Ornamentation"] == 0).all(), (
+        "Hersh Ornamentation should always be 0 (no per-coda timestamps)"
+    )
+    assert (hersh["has_timestamps"] == 0).all(), (
+        "Hersh has_timestamps must be 0"
+    )
+    assert hersh["Whale"].str.endswith("::UNK").all(), (
+        "Hersh Whale must always be the UNK sentinel"
     )
 
 
@@ -70,36 +79,44 @@ def test_dswp_and_birth_have_real_dt_values():
     src = _source(df)
     for s in ("sharma2024_dswp", "sharma2025_birth"):
         sub = df[src == s]
-        n_real_dt = int((sub["DeltaTime"] >= 0).sum())
+        n_real_dt = int((sub["TimeDelta"] >= 0).sum())
         assert n_real_dt > 100, (
-            f"{s}: only {n_real_dt} non-sentinel DeltaTime values"
+            f"{s}: only {n_real_dt} non-sentinel TimeDelta values"
         )
 
 
 def test_birth_dt_coverage_near_full():
     """Birth has 100% timestamp coverage, so almost every row should
-    have a real DeltaTime (excepting the very first of each sequence)."""
+    have a real TimeDelta — first row of each sequence is dt=0.0
+    (still has_timestamps=1, just no prior reference)."""
     df = _load()
     sub = df[_source(df) == "sharma2025_birth"]
-    n_first = int(sub["itemPosition"].eq(0).sum())
-    n_real = int((sub["DeltaTime"] >= 0).sum())
-    expected_real = len(sub) - n_first
-    # Allow a 5 % cushion for the rare first-coda-of-segment-with-NA-time.
-    assert n_real >= 0.95 * expected_real, (
-        f"birth: {n_real}/{expected_real} non-sentinel DeltaTime "
-        f"(expected ≈ rows minus first-of-sequence)"
+    has_ts = int(sub["has_timestamps"].sum())
+    assert has_ts >= 0.95 * len(sub), (
+        f"birth has_timestamps coverage low: {has_ts}/{len(sub)}"
     )
 
 
-def test_coda1_codes_decode_through_index():
+def test_coda_codes_decode_through_index():
     df = _load()
     if not RHYTHM_INDEX.exists():
         pytest.skip(f"{RHYTHM_INDEX.relative_to(REPO)} not found")
     idx = pd.read_csv(RHYTHM_INDEX)
     valid = set(idx["rhythm_class"].astype(int).tolist()) | {SILENCE_CODE}
-    unique = set(int(x) for x in df["Coda1"].unique())
+    unique = set(int(x) for x in df["Coda"].unique())
     unknown = unique - valid
-    assert not unknown, f"Coda1 values not in rhythm_class_index: {unknown}"
+    assert not unknown, f"Coda values not in rhythm_class_index: {unknown}"
+
+
+def test_whale_strings_decode_through_index():
+    df = _load()
+    if not WHALE_INDEX.exists():
+        pytest.skip(f"{WHALE_INDEX.relative_to(REPO)} not found")
+    idx = pd.read_csv(WHALE_INDEX)
+    valid = set(idx["Whale"].astype(str).tolist())
+    unique = set(df["Whale"].astype(str).unique())
+    unknown = unique - valid
+    assert not unknown, f"Whale strings not in whale_id_index: {unknown}"
 
 
 def test_item_position_contiguous_per_sequence():
@@ -112,10 +129,34 @@ def test_item_position_contiguous_per_sequence():
         )
 
 
-def test_simultaneous_coda2_in_birth():
-    """Birth has 100 % timestamps, so the 0.3 s simultaneity window should
-    catch some second-whale codas."""
+def test_synchrony_fires_in_birth():
+    """Birth has 100 % timestamps + speaker IDs, so the 0.3 s
+    simultaneity window should catch some chorus events."""
     df = _load()
     sub = df[_source(df) == "sharma2025_birth"]
-    n_sim = int((sub["Coda2"] != SILENCE_CODE).sum())
-    assert n_sim >= 100, f"only {n_sim} simultaneous Coda2 in birth"
+    n_sync = int(sub["Synchrony"].sum())
+    assert n_sync >= 50, f"only {n_sync} Synchrony=1 rows in birth"
+
+
+def test_unk_whale_distribution():
+    """``::UNK`` covers 100 % of Hersh (no IDs upstream), 0 % of birth
+    (100 % local_speaker_id), and a partial fraction of DSWP (~38 %
+    of rows lack both whale_photo_id and local_speaker_id)."""
+    df = _load()
+    src = _source(df)
+    is_unk = df["Whale"].str.endswith("::UNK")
+
+    hersh = df[src == "hersh2022_pacific"]
+    assert is_unk[hersh.index].all(), "Hersh must be 100 % UNK"
+
+    birth = df[src == "sharma2025_birth"]
+    assert not is_unk[birth.index].any(), (
+        "Birth has 100 % local_speaker_id; should never be UNK"
+    )
+
+    dswp = df[src == "sharma2024_dswp"]
+    dswp_unk_rate = float(is_unk[dswp.index].mean())
+    assert 0.05 < dswp_unk_rate < 0.6, (
+        f"DSWP UNK rate {dswp_unk_rate:.1%} outside the expected band "
+        f"(some IDs missing upstream, but most populated)"
+    )

@@ -48,13 +48,39 @@ from torch import nn
 
 ROOT = Path(__file__).resolve().parents[2]
 TOKENS = ROOT / "data" / "classified" / "whale_dialogues.csv"
+WHALE_INDEX = ROOT / "data" / "classified" / "whale_id_index.csv"
 OUT_JSON = ROOT / "outputs" / "grammar" / "predict_results_unified.json"
 OUT_MD = ROOT / "outputs" / "grammar" / "predict_results_unified.md"
 
 CONTEXT_K = 8
 N_FOLDS = 5
-TARGET = "Coda1"
+TARGET = "Coda"
 PAD = "<PAD>"
+PAD_INT = -1  # sentinel for integer feature streams (Whale, Sync, Orn, has_ts)
+PAD_FLOAT = 0.0  # sentinel for continuous streams (Duration, TimeDelta_log)
+
+# whale-gpt-style continuous DT encoding, applied at model-input time.
+# log(0.1 + max(dt, 0)) compresses the long tail and gives more
+# resolution to short gaps where the action is. Hersh rows carry
+# DeltaTime = -1 (sentinel); has_timestamps separately tells the model
+# the value is uninformative on those rows, so we just emit log(0.1)
+# (≈ -2.3) as a stable filler.
+DT_LOG_OFFSET = 0.1
+
+
+def _encode_dt_log(dt_value: float, has_ts: int) -> float:
+    """log(0.1 + dt) for present rows; log(0.1) sentinel otherwise."""
+    if not has_ts or dt_value < 0:
+        return float(np.log(DT_LOG_OFFSET))
+    return float(np.log(DT_LOG_OFFSET + max(dt_value, 0.0)))
+
+
+# When True, training mode is fast/CV-friendly: AdamW + constant lr=1e-3
+# + bs=128 + 80 epochs + early stopping (patience 10). When False,
+# training mode is slow/accurate matching whale-gpt's recipe: AdamW +
+# CosineAnnealingLR + bs=1000 + 5000 epochs + dropout 0.2 + no ES. Slow
+# mode multiplies wall-time per fold by ~30×; only flip for a final run.
+FAST_MODE = True
 
 
 def per_seq(tokens: pd.DataFrame, col: str) -> dict[str, list[str]]:
@@ -86,26 +112,22 @@ def build_windows(seq_dict, seq_ids, k):
     return np.array(X, dtype=object), np.array(y, dtype=object)
 
 
-# Inter-coda dt is fed as two features per position: (dt_norm, is_missing).
-# dt_norm = clip(dt, 0, 30) / 30 for known dt; 0 for sentinel (-1) or PAD.
-# is_missing = 1.0 if sentinel/PAD else 0.0.
-# Sequence sub-splits already cap dt at SEQUENCE_BREAK_S = 60s in
-# E_render_csv.py, so 30s is roughly the median upper bound — clipping past
-# that costs little signal and keeps the input in a unit-ish range.
-DT_NORM_CAP = 30.0
-
-
+# Legacy DT encoding (kept for the old B0–B4 ablation): two scalars
+# per position as (log_dt, has_timestamps). Matches whale-gpt's
+# np.log(0.1 + time_delta) recipe.
 def _encode_dt(dt_value: float) -> tuple[float, float]:
+    """(dt_log, has_timestamps) per position. Hersh & PAD → log(0.1)."""
     if dt_value < 0:
-        return 0.0, 1.0
-    clipped = min(max(dt_value, 0.0), DT_NORM_CAP)
-    return clipped / DT_NORM_CAP, 0.0
+        return float(np.log(DT_LOG_OFFSET)), 0.0
+    return float(np.log(DT_LOG_OFFSET + max(dt_value, 0.0))), 1.0
 
 
 def build_windows_with_dt(seq_dict, dt_dict, seq_ids, k):
     """Like build_windows but also returns a parallel (n, k, 2) array of
-    [dt_norm, is_missing] for the K context positions."""
+    (dt_log, has_timestamps) for the K context positions. PAD positions
+    get the same sentinel as missing-timestamp rows: log(0.1), 0."""
     X, y, DT = [], [], []
+    pad_dt = (float(np.log(DT_LOG_OFFSET)), 0.0)
     for sid in seq_ids:
         s = seq_dict[sid]
         ds = dt_dict[sid]
@@ -114,7 +136,7 @@ def build_windows_with_dt(seq_dict, dt_dict, seq_ids, k):
             ctx_dt = ds[max(0, i - k) : i]
             pad_n = k - len(ctx)
             ctx = [PAD] * pad_n + ctx
-            dt_feats = [(0.0, 1.0)] * pad_n + [_encode_dt(d) for d in ctx_dt]
+            dt_feats = [pad_dt] * pad_n + [_encode_dt(d) for d in ctx_dt]
             X.append(ctx)
             y.append(s[i])
             DT.append(dt_feats)
@@ -123,6 +145,72 @@ def build_windows_with_dt(seq_dict, dt_dict, seq_ids, k):
         np.array(y, dtype=object),
         np.array(DT, dtype=np.float32),
     )
+
+
+# ---------------------------------------------------------------------------
+# Multi-channel windowing for the redesigned model (R2).
+#
+# Each sequence is converted to seven parallel per-position streams:
+#   whale (int), coda (int), orn (int), sync (int), dur (float),
+#   td_log (float), has_ts (int).
+# Integer streams use PAD_INT (-1) for PAD positions. Continuous streams
+# use PAD_FLOAT (0.0). Targets are emitted as a dict for multi-task loss.
+# ---------------------------------------------------------------------------
+
+
+def per_seq_multi(tokens: pd.DataFrame, whale2id: dict[str, int],
+                  coda2id: dict[int, int]) -> dict[str, dict[str, list]]:
+    """Group rows by ``sequenceId`` and return per-stream sequences as ints
+    (whale, coda) / floats (duration, td_log) / ints (orn, sync, has_ts).
+
+    Whale and Coda are mapped through pre-computed dicts so the same
+    integer encoding is used across folds.
+    """
+    out: dict[str, dict[str, list]] = {}
+    for seq_id, g in tokens.groupby("sequenceId"):
+        g = g.sort_values("itemPosition")
+        whales = [int(whale2id[str(w)]) for w in g["Whale"]]
+        codas = [int(coda2id[int(c)]) for c in g["Coda"]]
+        orn = [int(o) for o in g["Ornamentation"]]
+        sync = [int(s) for s in g["Synchrony"]]
+        dur = [float(d) for d in g["Duration"]]
+        has_ts = [int(h) for h in g["has_timestamps"]]
+        td_log = [
+            _encode_dt_log(float(dt), int(h))
+            for dt, h in zip(g["TimeDelta"], g["has_timestamps"])
+        ]
+        out[str(seq_id)] = dict(
+            whale=whales, coda=codas, orn=orn, sync=sync,
+            dur=dur, td_log=td_log, has_ts=has_ts,
+        )
+    return out
+
+
+def build_multi_windows(per_seq_data, seq_ids, k):
+    """Slide a stride-1 K-window over each sequence. Returns dict of
+    parallel arrays (one per channel) for inputs, and dict of arrays
+    for targets (the value at position i, predicted from positions
+    i-K..i-1)."""
+    chans = ("whale", "coda", "orn", "sync", "dur", "td_log", "has_ts")
+    X = {c: [] for c in chans}
+    Y = {c: [] for c in chans}
+    int_chans = {"whale", "coda", "orn", "sync", "has_ts"}
+    for sid in seq_ids:
+        seq = per_seq_data[sid]
+        L = len(seq["coda"])
+        for i in range(1, L):
+            for c in chans:
+                stream = seq[c]
+                ctx = stream[max(0, i - k) : i]
+                pad_n = k - len(ctx)
+                pad_val = PAD_INT if c in int_chans else PAD_FLOAT
+                X[c].append([pad_val] * pad_n + list(ctx))
+                Y[c].append(stream[i])
+    X_arr = {c: np.array(X[c], dtype=np.int64 if c in int_chans
+                          else np.float32) for c in chans}
+    Y_arr = {c: np.array(Y[c], dtype=np.int64 if c in int_chans
+                          else np.float32) for c in chans}
+    return X_arr, Y_arr
 
 
 def bits_per_token(p_true: np.ndarray) -> float:
@@ -244,7 +332,7 @@ class MiniTransformer(nn.Module):
 
 class MiniTransformerDT(nn.Module):
     """Same as MiniTransformer but adds a learned linear projection of the
-    per-position (dt_norm, is_missing) features to the input embedding."""
+    per-position (dt_log, has_timestamps) features to the input embedding."""
 
     def __init__(self, V, k, d=64, n_layers=2, n_heads=4):
         super().__init__()
@@ -265,6 +353,98 @@ class MiniTransformerDT(nn.Module):
         h = self.emb(x) + self.pos(pos_ids) + self.dt_proj(dt)
         h = self.tfm(h)
         return self.head(h[:, -1])
+
+
+class MultiChannelMultiTask(nn.Module):
+    """whale-gpt-style structured-tabular transformer.
+
+    Per position the input is the concatenation of seven learned
+    embeddings/projections summing to ``d_model``:
+
+      Whale          → nn.Embedding(V_whale, 6)
+      Coda           → nn.Embedding(V_coda,  8)
+      Ornamentation  → nn.Embedding(2,       3)
+      Synchrony      → nn.Embedding(2,       3)
+      Duration       → nn.Linear(1,          4)   continuous
+      TimeDelta_log  → nn.Linear(1,          4)   continuous
+      has_timestamps → nn.Embedding(2,       4)
+                                       total = 32 = d_model
+
+    Plus a learned positional embedding.
+
+    Output heads:
+      Whale (CE), Coda (CE), Ornamentation (CE), Synchrony (CE),
+      Duration (L1 regression), TimeDelta (L1 regression on log-dt)
+
+    The ``-1`` PAD value for any categorical input is mapped to vocab
+    index 0 (a reserved PAD slot in each embedding) before the
+    embedding lookup; PAD-position features therefore consistently
+    project to a single learned PAD vector per channel.
+    """
+
+    EMB_DIMS = dict(
+        whale=6, coda=8, orn=3, sync=3, dur=4, td=4, has_ts=4,
+    )  # sums to 32
+
+    def __init__(self, V_whale, V_coda, k, d=32, n_layers=3, n_heads=8,
+                 dropout=0.1):
+        super().__init__()
+        assert sum(self.EMB_DIMS.values()) == d, (
+            f"emb dims sum to {sum(self.EMB_DIMS.values())}, expected d={d}"
+        )
+        # +1 for the PAD slot at index 0 (we shift real ids by +1)
+        self.emb_whale = nn.Embedding(V_whale + 1, self.EMB_DIMS["whale"])
+        self.emb_coda = nn.Embedding(V_coda + 1, self.EMB_DIMS["coda"])
+        self.emb_orn = nn.Embedding(3, self.EMB_DIMS["orn"])  # PAD + {0,1}
+        self.emb_sync = nn.Embedding(3, self.EMB_DIMS["sync"])
+        self.emb_has_ts = nn.Embedding(3, self.EMB_DIMS["has_ts"])
+        self.proj_dur = nn.Linear(1, self.EMB_DIMS["dur"])
+        self.proj_td = nn.Linear(1, self.EMB_DIMS["td"])
+        self.pos = nn.Embedding(k, d)
+        encoder_layer = nn.TransformerEncoderLayer(
+            d_model=d, nhead=n_heads, dim_feedforward=4 * d, dropout=dropout,
+            batch_first=True, activation="gelu",
+        )
+        self.tfm = nn.TransformerEncoder(encoder_layer, n_layers)
+
+        # Multi-task heads: one per target column.
+        self.head_whale = nn.Linear(d, V_whale + 1)
+        self.head_coda = nn.Linear(d, V_coda + 1)
+        self.head_orn = nn.Linear(d, 2)
+        self.head_sync = nn.Linear(d, 2)
+        self.head_dur = nn.Linear(d, 1)
+        self.head_td = nn.Linear(d, 1)
+        self.k = k
+        self.V_whale = V_whale
+        self.V_coda = V_coda
+
+    def encode(self, whale, coda, orn, sync, dur, td_log, has_ts):
+        """Build d_model-wide per-position features by concatenation."""
+        # Shift integer ids by +1 so PAD (-1 in input streams) → index 0.
+        e_w = self.emb_whale((whale + 1).long())
+        e_c = self.emb_coda((coda + 1).long())
+        e_o = self.emb_orn((orn + 1).long())
+        e_s = self.emb_sync((sync + 1).long())
+        e_h = self.emb_has_ts((has_ts + 1).long())
+        e_d = self.proj_dur(dur.unsqueeze(-1))
+        e_t = self.proj_td(td_log.unsqueeze(-1))
+        h = torch.cat([e_w, e_c, e_o, e_s, e_d, e_t, e_h], dim=-1)
+        B, K, _ = h.shape
+        pos_ids = torch.arange(K, device=h.device).expand(B, K)
+        return h + self.pos(pos_ids)
+
+    def forward(self, whale, coda, orn, sync, dur, td_log, has_ts):
+        h = self.encode(whale, coda, orn, sync, dur, td_log, has_ts)
+        h = self.tfm(h)
+        last = h[:, -1]
+        return dict(
+            whale=self.head_whale(last),
+            coda=self.head_coda(last),
+            orn=self.head_orn(last),
+            sync=self.head_sync(last),
+            dur=self.head_dur(last).squeeze(-1),
+            td=self.head_td(last).squeeze(-1),
+        )
 
 
 def train_torch(model, X_train, y_train, X_val, y_val, epochs=80, lr=1e-3, bs=128, seed=0):
@@ -509,6 +689,198 @@ def evaluate_ablation_fold(seq_dict, dt_dict, train_ids, test_ids):
     return res
 
 
+# ---------------------------------------------------------------------------
+# R0 vs R2 redesign-mode evaluator.
+#
+# R0 control = B4-mimic: single-channel Coda + DT, 3L 8h d=32 K=25.
+# R2 redesign = multi-channel multi-task: per-column embeddings of
+#               (Whale, Coda, Orn, Sync, Dur, TimeDelta_log, has_timestamps)
+#               concatenated to d_model=32; multi-task heads with CE on
+#               Whale/Coda/Orn/Sync + L1 on Dur/TimeDelta. 3L 8h K=25.
+#
+# Reported metric is the **Coda head's bpt and accuracy**, so R0 and R2
+# are directly comparable on the same target column. R2's auxiliary
+# heads contribute to the loss but not to the headline metric.
+# ---------------------------------------------------------------------------
+
+
+def _train_multitask(model, train_inputs, train_targets, val_inputs,
+                     val_targets, fast: bool, seed: int = 0):
+    """Multi-task training loop for ``MultiChannelMultiTask``. ``fast=True``
+    uses AdamW + constant lr=1e-3 + bs=128 + 80 epochs + ES patience 10.
+    ``fast=False`` uses AdamW + CosineAnnealingLR + bs=1000 + 5000 epochs
+    + dropout 0.2 + no ES."""
+    torch.manual_seed(seed)
+
+    # Loss weights: CE losses average ~3-5 nats; L1 on duration is
+    # ~0.3-0.5; L1 on log-dt is ~1-3. Down-weight the regression
+    # targets so they don't drown out the categorical signal.
+    weights = dict(whale=1.0, coda=1.0, orn=0.5, sync=0.5,
+                   dur=0.2, td=0.2)
+    ce = nn.CrossEntropyLoss()
+    l1 = nn.L1Loss()
+
+    def _step_loss(out, tgt):
+        loss = (
+            weights["whale"] * ce(out["whale"], tgt["whale"])
+            + weights["coda"] * ce(out["coda"], tgt["coda"])
+            + weights["orn"] * ce(out["orn"], (tgt["orn"] >= 0).long() * tgt["orn"].clamp(min=0))
+            + weights["sync"] * ce(out["sync"], (tgt["sync"] >= 0).long() * tgt["sync"].clamp(min=0))
+            + weights["dur"] * l1(out["dur"], tgt["dur"])
+            + weights["td"] * l1(out["td"], tgt["td_log"])
+        )
+        return loss
+
+    if fast:
+        epochs, lr, bs, patience = 80, 1e-3, 128, 10
+        sched = None
+    else:
+        epochs, lr, bs, patience = 5000, 1e-4, 1000, None
+        # cosine over the full epoch budget.
+    opt = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-4)
+    if not fast:
+        sched = torch.optim.lr_scheduler.CosineAnnealingLR(
+            opt, T_max=epochs, eta_min=1e-5)
+    n = train_inputs["coda"].shape[0]
+
+    def _coda_val_loss():
+        model.eval()
+        with torch.no_grad():
+            out = model(**val_inputs)
+            return float(ce(out["coda"], val_targets["coda"]).item())
+
+    best_val = float("inf")
+    best_state = {k: v.clone() for k, v in model.state_dict().items()}
+    since = 0
+    for epoch in range(epochs):
+        model.train()
+        idx = torch.randperm(n)
+        for i in range(0, n, bs):
+            b = idx[i : i + bs]
+            inp = {k: v[b] for k, v in train_inputs.items()}
+            tgt = {k: v[b] for k, v in train_targets.items()}
+            opt.zero_grad()
+            loss = _step_loss(model(**inp), tgt)
+            loss.backward()
+            opt.step()
+        if sched is not None:
+            sched.step()
+        val = _coda_val_loss()
+        if val < best_val - 1e-4:
+            best_val, since = val, 0
+            best_state = {k: v.clone() for k, v in model.state_dict().items()}
+        else:
+            since += 1
+            if patience is not None and since >= patience:
+                break
+    model.load_state_dict(best_state)
+    return model
+
+
+def _to_tensors(d, int_keys=("whale", "coda", "orn", "sync", "has_ts"),
+                 float_keys=("dur", "td_log")):
+    """Convert numpy stream dict to a tensor dict matching the model
+    forward signature."""
+    out = {}
+    for k in int_keys:
+        out[k] = torch.from_numpy(d[k]).long()
+    for k in float_keys:
+        out[k] = torch.from_numpy(d[k]).float()
+    return out
+
+
+def evaluate_redesign_fold(per_seq_data, train_ids, test_ids,
+                           V_whale, V_coda, fast: bool):
+    """Run R0 (B4 single-channel control) and R2 (multi-channel multi-task)
+    on one fold. Both report Coda-head bits/token + accuracy."""
+    K = 25
+    res: dict[str, dict] = {}
+
+    # ---------------- R0 control: single-channel Coda + DT, K=25 ----------
+    # Build legacy windows (string Coda tokens + (dt_log, has_ts)) using
+    # the existing build_windows_with_dt helper. We need string-token
+    # streams for that, so reconstruct from per_seq_data.
+    seq_dict = {sid: [str(c) for c in d["coda"]] for sid, d in per_seq_data.items()}
+    dt_dict = {sid: [
+        # Recover raw seconds from log_dt is impossible (we threw away
+        # the value when has_ts=0). For R0 we encode again from the
+        # td_log stream by inverting log(0.1+dt) for has_ts=1 rows;
+        # missing rows pass -1 through to _encode_dt's sentinel branch.
+        (float(np.exp(d["td_log"][i]) - DT_LOG_OFFSET) if d["has_ts"][i] else -1.0)
+        for i in range(len(d["coda"]))
+    ] for sid, d in per_seq_data.items()}
+    Xdt_tr, ydt_tr, DT_tr = build_windows_with_dt(seq_dict, dt_dict, train_ids, K)
+    Xdt_te, ydt_te, DT_te = build_windows_with_dt(seq_dict, dt_dict, test_ids, K)
+    classes = sorted(set(ydt_tr.tolist()) | set(ydt_te.tolist()) | {PAD})
+    V_k = len(classes)
+    res["R0_control_B4mimic"] = evaluate_torch_model_dt(
+        "R0-single-chan",
+        lambda V: MiniTransformerDT(V, K, d=32, n_layers=3, n_heads=8),
+        Xdt_tr, DT_tr, ydt_tr, Xdt_te, DT_te, ydt_te, V_k, classes,
+    )
+
+    # ---------------- R2 redesign: multi-channel multi-task ----------------
+    Xtr, Ytr = build_multi_windows(per_seq_data, train_ids, K)
+    Xte, Yte = build_multi_windows(per_seq_data, test_ids, K)
+
+    # Train/val split on training fold.
+    rng = np.random.default_rng(0)
+    n_tr = Xtr["coda"].shape[0]
+    perm = rng.permutation(n_tr)
+    n_val = max(64, int(0.1 * n_tr))
+    val_idx, tr_idx = perm[:n_val], perm[n_val:]
+
+    train_inputs = _to_tensors({k: v[tr_idx] for k, v in Xtr.items()})
+    train_targets = _to_tensors({k: v[tr_idx] for k, v in Ytr.items()})
+    val_inputs = _to_tensors({k: v[val_idx] for k, v in Xtr.items()})
+    val_targets = _to_tensors({k: v[val_idx] for k, v in Ytr.items()})
+    test_inputs = _to_tensors(Xte)
+    test_targets = _to_tensors(Yte)
+
+    model = MultiChannelMultiTask(
+        V_whale=V_whale, V_coda=V_coda, k=K, d=32,
+        n_layers=3, n_heads=8,
+        dropout=(0.2 if not fast else 0.1),
+    )
+    n_params = sum(p.numel() for p in model.parameters())
+    _train_multitask(
+        model,
+        train_inputs, train_targets,
+        val_inputs, val_targets,
+        fast=fast,
+    )
+
+    model.eval()
+    with torch.no_grad():
+        out = model(**test_inputs)
+        coda_logits = out["coda"]
+        log_probs = torch.log_softmax(coda_logits, dim=-1)
+        # Targets in Ytr/Yte are coda ids in [0, V_coda); model head
+        # outputs V_coda+1 with index 0 reserved for PAD. Shift targets
+        # by +1 to match.
+        coda_targets = (test_targets["coda"] + 1).long()
+        ll = log_probs.gather(1, coda_targets.unsqueeze(1)).squeeze(1)
+        bits = -ll.mean().item() / math.log(2)
+        pred = coda_logits.argmax(-1)
+        acc = (pred == coda_targets).float().mean().item()
+
+    res["R2_multichannel_multitask"] = dict(
+        accuracy=float(acc),
+        bits_per_token=float(bits),
+        n_params=int(n_params),
+    )
+
+    res["_meta"] = dict(
+        n_train=int(Xtr["coda"].shape[0]),
+        n_test=int(Xte["coda"].shape[0]),
+        V_coda=int(V_coda),
+        V_whale=int(V_whale),
+        K=K,
+        fast_mode=bool(fast),
+    )
+    return res
+
+
 def evaluate_one_fold(seq_dict, train_ids, test_ids, k, quick=False):
     X_train, y_train = build_windows(seq_dict, train_ids, k)
     X_test, y_test = build_windows(seq_dict, test_ids, k)
@@ -560,10 +932,28 @@ def main(argv: list[str] | None = None) -> None:
         "with and without DeltaTime, plus a whale-gpt-main-shape (3L, 8h, "
         "d=32, K=25, +DT) variant. Writes outputs/grammar/predict_results_ablation.{md,json}.",
     )
+    p.add_argument(
+        "--redesign",
+        action="store_true",
+        help="Run the whale-gpt-style redesign comparison: R0 control "
+        "(B4-mimic, single-channel Coda + DT) vs R2 (multi-channel "
+        "multi-task with Whale/Coda/Orn/Sync/Dur/DT/has_timestamps + "
+        "per-column embeddings + multi-task heads). Both at 3L 8h d=32 "
+        "K=25. Headline metric is the Coda head's bits/token + accuracy. "
+        "Writes outputs/grammar/predict_results_redesign.{md,json}.",
+    )
+    p.add_argument(
+        "--slow",
+        action="store_true",
+        help="(Only with --redesign) Flip FAST_MODE to False: AdamW + "
+        "CosineAnnealingLR + bs=1000 + 5000 epochs + dropout 0.2, no "
+        "early stopping. Multiplies wall-time per fold by ~30×.",
+    )
     args = p.parse_args(argv)
 
-    if args.quick and args.ablation:
-        raise SystemExit("--quick and --ablation are mutually exclusive")
+    n_modes = sum([args.quick, args.ablation, args.redesign])
+    if n_modes > 1:
+        raise SystemExit("--quick / --ablation / --redesign are mutually exclusive")
 
     if args.quick:
         out_json = OUT_JSON.with_name("predict_results_quick.json")
@@ -571,6 +961,9 @@ def main(argv: list[str] | None = None) -> None:
     elif args.ablation:
         out_json = OUT_JSON.with_name("predict_results_ablation.json")
         out_md = OUT_MD.with_name("predict_results_ablation.md")
+    elif args.redesign:
+        out_json = OUT_JSON.with_name("predict_results_redesign.json")
+        out_md = OUT_MD.with_name("predict_results_redesign.md")
     else:
         out_json, out_md = OUT_JSON, OUT_MD
     out_json.parent.mkdir(parents=True, exist_ok=True)
@@ -584,22 +977,55 @@ def main(argv: list[str] | None = None) -> None:
     dt_dict = per_seq_dt(tokens) if args.ablation else None
     if args.ablation:
         dt_dict = {sid: dt_dict[sid] for sid in seq_ids}
+
+    # Redesign mode needs the whole multi-channel per-seq dict + global
+    # whale/coda integer mappings.
+    redesign_data = None
+    V_whale = V_coda = None
+    if args.redesign:
+        whale_idx = pd.read_csv(WHALE_INDEX) if WHALE_INDEX.exists() else None
+        if whale_idx is None:
+            raise SystemExit(
+                f"{WHALE_INDEX} missing; run `python -m src.pipeline.E_render_csv` first."
+            )
+        whale2id = {str(w): int(i) for w, i in
+                    zip(whale_idx["Whale"], whale_idx["whale_id"])}
+        # Coda integer encoding: dense reindex over all observed values.
+        coda_uniq = sorted(int(c) for c in tokens["Coda"].unique())
+        coda2id = {c: i for i, c in enumerate(coda_uniq)}
+        V_whale = len(whale2id)
+        V_coda = len(coda2id)
+        redesign_data = per_seq_multi(tokens, whale2id, coda2id)
     kf = KFold(n_splits=N_FOLDS, shuffle=True, random_state=42)
 
     K = 4 if args.quick else CONTEXT_K
     fold_results = []
+    fast = not args.slow
+    if args.redesign:
+        print(f"redesign mode: V_coda={V_coda}, V_whale={V_whale}, "
+              f"K=25, fast_mode={fast}")
     for fi, (tr_idx, te_idx) in enumerate(kf.split(seq_ids)):
         train_ids = [seq_ids[i] for i in tr_idx]
         test_ids = [seq_ids[i] for i in te_idx]
         t0 = time.time()
         if args.ablation:
             res = evaluate_ablation_fold(seq_dict, dt_dict, train_ids, test_ids)
+        elif args.redesign:
+            res = evaluate_redesign_fold(
+                redesign_data, train_ids, test_ids,
+                V_whale=V_whale, V_coda=V_coda, fast=fast,
+            )
         else:
             res = evaluate_one_fold(seq_dict, train_ids, test_ids, K, quick=args.quick)
         res["_meta"]["fold"] = fi
         res["_meta"]["seconds"] = round(time.time() - t0, 1)
         fold_results.append(res)
-        prefix = "B" if args.ablation else "M"
+        if args.ablation:
+            prefix = "B"
+        elif args.redesign:
+            prefix = "R"
+        else:
+            prefix = "M"
         models = [k for k in res if k.startswith(prefix)]
         print(
             f"fold {fi}: "
@@ -610,7 +1036,12 @@ def main(argv: list[str] | None = None) -> None:
             + f"  ({res['_meta']['seconds']}s)"
         )
 
-    prefix = "B" if args.ablation else "M"
+    if args.ablation:
+        prefix = "B"
+    elif args.redesign:
+        prefix = "R"
+    else:
+        prefix = "M"
     summary = {}
     model_keys = [k for k in fold_results[0] if k.startswith(prefix)]
     for m in model_keys:
@@ -630,6 +1061,13 @@ def main(argv: list[str] | None = None) -> None:
         V_used = fold_results[0]["_meta"].get("V_k8")
         out = dict(folds=fold_results, summary=summary, target=TARGET, V_k8=V_used,
                    V_k25=fold_results[0]["_meta"].get("V_k25"))
+    elif args.redesign:
+        V_used = fold_results[0]["_meta"].get("V_coda")
+        out = dict(folds=fold_results, summary=summary, target=TARGET,
+                   V_coda=V_used,
+                   V_whale=fold_results[0]["_meta"].get("V_whale"),
+                   K=fold_results[0]["_meta"].get("K"),
+                   fast_mode=fold_results[0]["_meta"].get("fast_mode"))
     else:
         V_used = fold_results[0]["_meta"]["V"]
         out = dict(folds=fold_results, summary=summary, k=K, target=TARGET, V=V_used)
@@ -638,6 +1076,13 @@ def main(argv: list[str] | None = None) -> None:
     L = []
     if args.ablation:
         title = "# 5-fold transformer ablation on unified corpus (depth × DeltaTime × whale-gpt-main shape)"
+    elif args.redesign:
+        mode = "fast" if fold_results[0]["_meta"]["fast_mode"] else "slow"
+        title = (
+            "# 5-fold whale-gpt-style redesign — "
+            "R0 (B4 single-channel control) vs R2 (multi-channel multi-task)"
+            f" — `{mode}` training mode"
+        )
     else:
         title_suffix = " (quick smoke test)" if args.quick else ""
         title = f"# 5-fold next-token prediction on unified corpus (bits/token){title_suffix}"
@@ -646,7 +1091,9 @@ def main(argv: list[str] | None = None) -> None:
     L.append(
         f"Sequence-level KFold ({N_FOLDS} folds, no within-sequence leakage). "
         f"Target = `{TARGET}` (V = {V_used} including PAD). "
-        + ("Context K varies per variant. " if args.ablation else f"Context K = {K} past codas. ")
+        + ("Context K varies per variant. " if args.ablation
+           else f"Context K = 25 past codas. " if args.redesign
+           else f"Context K = {K} past codas. ")
         + "Metric = held-out cross-entropy in **bits/token** (log₂); lower is better. "
         "Perplexity = 2^(bits/token)."
     )
@@ -677,6 +1124,8 @@ def main(argv: list[str] | None = None) -> None:
         "B2_4L_d64_K8": "MiniTransformer 4L, 4h, d=64, K=8 (no DT)",
         "B3_4L_d64_K8_DT": "MiniTransformer 4L, 4h, d=64, K=8 + DT",
         "B4_3L_d32_K25_DT": "whale-gpt-main shape: 3L, 8h, d=32, K=25 + DT",
+        "R0_control_B4mimic": "R0 control (B4 mimic): single-channel Coda + DT",
+        "R2_multichannel_multitask": "R2 redesign: multi-channel + multi-task",
     }
     model_order = [m for m in label_for if m in summary]
     for i, m in enumerate(model_order):
@@ -717,6 +1166,24 @@ def main(argv: list[str] | None = None) -> None:
                 f"variant saves **{base['bits_per_token_mean'] - summary[best_m]['bits_per_token_mean']:.3f} "
                 "bits/token** over it. Compare individual rows to see depth vs DT vs "
                 "longer-context contributions."
+            )
+    elif args.redesign:
+        r0 = summary.get("R0_control_B4mimic")
+        r2 = summary.get("R2_multichannel_multitask")
+        if r0 and r2:
+            delta = r0["bits_per_token_mean"] - r2["bits_per_token_mean"]
+            sign = "−" if delta >= 0 else "+"
+            L.append(
+                f"- R0 control (B4 mimic) = **{r0['bits_per_token_mean']:.3f} ± "
+                f"{r0['bits_per_token_std']:.3f}** bpt; "
+                f"R2 multi-channel multi-task = **{r2['bits_per_token_mean']:.3f} "
+                f"± {r2['bits_per_token_std']:.3f}** bpt. "
+                f"Δ(R0 → R2) = **{sign}{abs(delta):.3f} bits/token**."
+            )
+            L.append(
+                "- Compare Δ to fold-variance σ in the rightmost column. If "
+                "|Δ| < σ, the redesign is within noise; if |Δ| ≥ σ the new "
+                "input channels + multi-task supervision earned their complexity."
             )
     else:
         L.append(
