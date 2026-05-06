@@ -1,0 +1,33 @@
+source: multilang
+seed: 42
+V: 823; n_dt_buckets: 5; K: 8
+dt_weight: 0.5
+tier partition: hersh=265, clean=164, other=0
+windows: hersh=22102, clean=11973, val=1325
+held-out seeds: ['zh_dswp::TCCM::011000::25', 'zh_dswp::TCCM::020500::13', 'zh_birth::TCCM::021100::28']
+
+=== mixed baseline ===
+n_train_windows: 34075 (hersh+clean merged)
+epochs: 40
+epoch   1  train coda=5.604 dt=0.872  | val coda=5.279 dt=1.958
+epoch   2  train coda=5.227 dt=0.828  | val coda=5.202 dt=1.967
+epoch   3  train coda=5.126 dt=0.824  | val coda=5.167 dt=1.929
+epoch   4  train coda=5.056 dt=0.824  | val coda=5.140 dt=1.888
+epoch   5  train coda=5.002 dt=0.821  | val coda=5.124 dt=1.926
+epoch   6  train coda=4.960 dt=0.820  | val coda=5.121 dt=1.968
+epoch   7  train coda=4.926 dt=0.820  | val coda=5.109 dt=1.942
+epoch   8  train coda=4.900 dt=0.820  | val coda=5.109 dt=1.925
+epoch   9  train coda=4.877 dt=0.819  | val coda=5.110 dt=1.908
+epoch  10  train coda=4.858 dt=0.820  | val coda=5.119 dt=1.988
+epoch  11  train coda=4.841 dt=0.819  | val coda=5.114 dt=1.861
+epoch  12  train coda=4.829 dt=0.819  | val coda=5.117 dt=1.929
+epoch  13  train coda=4.816 dt=0.818  | val coda=5.113 dt=1.914
+epoch  14  train coda=4.804 dt=0.819  | val coda=5.107 dt=1.954
+epoch  15  train coda=4.795 dt=0.818  | val coda=5.118 dt=1.925
+epoch  16  train coda=4.785 dt=0.819  | val coda=5.106 dt=1.986
+early stop at epoch 16
+
+val final-position coda bpt: 7.5986
+val final-position coda acc: 0.0725
+val final-position dt   bpt: 2.6871
+val final-position dt   acc: 0.2694

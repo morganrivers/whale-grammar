@@ -1,0 +1,27 @@
+source: whale
+seed: 42
+V: 467; n_dt_buckets: 7; K: 8
+dt_weight: 0.5
+tier partition: hersh=222, clean=126, other=0
+windows: hersh=22356, clean=12533, val=539
+held-out seeds: ['sharma2024_dswp::sw061b002_13901', 'sharma2024_dswp::sw133a004_20239', 'sharma2024_dswp::sw133b001_5000']
+
+=== mixed baseline ===
+n_train_windows: 34889 (hersh+clean merged)
+epochs: 40
+epoch   1  train coda=4.256 dt=0.920  | val coda=3.425 dt=2.690
+epoch   2  train coda=3.577 dt=0.690  | val coda=3.316 dt=2.586
+epoch   3  train coda=3.457 dt=0.666  | val coda=3.265 dt=2.482
+epoch   4  train coda=3.390 dt=0.655  | val coda=3.272 dt=2.481
+epoch   5  train coda=3.346 dt=0.647  | val coda=3.249 dt=2.369
+epoch   6  train coda=3.314 dt=0.641  | val coda=3.280 dt=2.454
+epoch   7  train coda=3.290 dt=0.637  | val coda=3.266 dt=2.446
+epoch   8  train coda=3.271 dt=0.634  | val coda=3.281 dt=2.444
+epoch   9  train coda=3.255 dt=0.631  | val coda=3.269 dt=2.483
+epoch  10  train coda=3.243 dt=0.629  | val coda=3.283 dt=2.429
+early stop at epoch 10
+
+val final-position coda bpt: 5.1899
+val final-position coda acc: 0.3135
+val final-position dt   bpt: 3.8596
+val final-position dt   acc: 0.0353

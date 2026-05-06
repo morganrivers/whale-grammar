@@ -81,8 +81,8 @@
   "dt_scheme_name": "whale",
   "n_dt_buckets": 7,
   "dt_weight": 0.5,
-  "val_coda_bpt": 4.527263571984681,
-  "val_coda_acc": 0.3525046382189239,
-  "val_dt_bpt": 2.6757524836171185,
-  "val_dt_acc": 0.24304267161410018
+  "val_coda_bpt": 5.189927768338104,
+  "val_coda_acc": 0.313543599257885,
+  "val_dt_bpt": 3.8595610586806,
+  "val_dt_acc": 0.03525046382189239
 }

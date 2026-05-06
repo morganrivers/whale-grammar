@@ -1,0 +1,61 @@
+loaded whale: 348 conversations, V=467, dt scheme=whale (7 buckets), K=8
+tier partition: hersh=222, clean=126, other=0
+held-out seeds (clean tier): ['sharma2024_dswp::sw061b002_13901', 'sharma2024_dswp::sw133a004_20239', 'sharma2024_dswp::sw133b001_5000']
+windows — hersh: (22356, 9); clean: (12533, 9); mixed: (34889, 9); val (clean): (539, 9)
+
+=== MIXED BASELINE (single-phase, hersh+clean merged) ===
+Moving model to device:  cpu
+epoch   1  train coda=4.256 dt=0.920  | val coda=3.425 dt=2.690
+epoch   2  train coda=3.577 dt=0.690  | val coda=3.316 dt=2.586
+epoch   3  train coda=3.457 dt=0.666  | val coda=3.265 dt=2.482
+epoch   4  train coda=3.390 dt=0.655  | val coda=3.272 dt=2.481
+epoch   5  train coda=3.346 dt=0.647  | val coda=3.249 dt=2.369
+epoch   6  train coda=3.314 dt=0.641  | val coda=3.280 dt=2.454
+epoch   7  train coda=3.290 dt=0.637  | val coda=3.266 dt=2.446
+epoch   8  train coda=3.271 dt=0.634  | val coda=3.281 dt=2.444
+epoch   9  train coda=3.255 dt=0.631  | val coda=3.269 dt=2.483
+epoch  10  train coda=3.243 dt=0.629  | val coda=3.283 dt=2.429
+early stop at epoch 10
+Moving model to device:  cpu
+val final-position coda bpt: 5.1899
+val final-position coda acc: 0.3135
+val final-position dt   bpt: 3.8596
+val final-position dt   acc: 0.0353
+wrote mixed checkpoint to /home/dmrivers/Code/whale-grammar/outputs/grammar/checkpoints/whale_baseline/
+
+=== CURRICULUM (phase-1 hersh → phase-2 clean) ===
+Moving model to device:  cpu
+epoch   1  train coda=4.462 dt=0.456  | val coda=5.954 dt=6.026
+epoch   2  train coda=3.632 dt=0.019  | val coda=6.327 dt=7.472
+epoch   3  train coda=3.488 dt=0.007  | val coda=6.563 dt=8.383
+epoch   4  train coda=3.414 dt=0.004  | val coda=6.725 dt=9.081
+epoch   5  train coda=3.366 dt=0.002  | val coda=6.880 dt=9.642
+epoch   6  train coda=3.331 dt=0.001  | val coda=6.977 dt=10.142
+early stop at epoch 6
+Moving model to device:  cpu
+epoch   1  train coda=4.237 dt=2.117  | val coda=3.344 dt=2.016
+epoch   2  train coda=3.135 dt=1.349  | val coda=3.043 dt=1.871
+epoch   3  train coda=2.977 dt=1.285  | val coda=3.010 dt=1.835
+epoch   4  train coda=2.902 dt=1.254  | val coda=2.987 dt=1.828
+epoch   5  train coda=2.849 dt=1.234  | val coda=2.982 dt=1.818
+epoch   6  train coda=2.810 dt=1.220  | val coda=2.971 dt=1.807
+epoch   7  train coda=2.779 dt=1.208  | val coda=2.973 dt=1.806
+epoch   8  train coda=2.753 dt=1.199  | val coda=2.972 dt=1.778
+epoch   9  train coda=2.732 dt=1.191  | val coda=2.976 dt=1.792
+epoch  10  train coda=2.714 dt=1.185  | val coda=2.979 dt=1.807
+epoch  11  train coda=2.698 dt=1.179  | val coda=2.987 dt=1.833
+epoch  12  train coda=2.685 dt=1.175  | val coda=2.980 dt=1.765
+epoch  13  train coda=2.672 dt=1.171  | val coda=2.989 dt=1.746
+early stop at epoch 13
+Moving model to device:  cpu
+val final-position coda bpt: 4.5273
+val final-position coda acc: 0.3525
+val final-position dt   bpt: 2.6758
+val final-position dt   acc: 0.2430
+wrote curriculum checkpoint to /home/dmrivers/Code/whale-grammar/outputs/grammar/checkpoints/whale/
+
+=== held-out (clean-tier) comparison ===
+       mode   coda_bpt   coda_acc     dt_bpt     dt_acc
+      mixed     5.1899     0.3135     3.8596     0.0353
+ curriculum     4.5273     0.3525     2.6758     0.2430
+  Δ(curriculum − mixed): coda_bpt=-0.6627, coda_acc=+0.0390  (curriculum better on bpt)

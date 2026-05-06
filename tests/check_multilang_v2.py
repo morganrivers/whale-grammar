@@ -1,4 +1,4 @@
-"""Post-build verification for the v2 multilang corpus.
+"""Post-build verification for the Mandarin-only multilang corpus.
 
 Run after src.grammar.multilang_loader writes
 data/classified/multilang_dialogues.csv. Catches the most likely loader
@@ -39,7 +39,7 @@ def main() -> int:
         return 1
     clean_corpora = (
         clean["sequenceId"]
-        .str.extract(r"^[^:]+::zh::([^:]+)::")[0]
+        .str.extract(r"^[^:]+::([^:]+)::")[0]
         .dropna()
         .unique()
     )
@@ -49,19 +49,19 @@ def main() -> int:
         return 1
     print(f"OK #1 clean-tier corpora: {sorted(clean_corpora)}")
 
-    # 2. Hersh-tier ZH portion uses the same restricted pool.
+    # 2. Hersh-equiv tier uses the same restricted pool.
     hersh = df[df["tier"] == "multilang"]
-    hersh_zh_corpora = (
+    hersh_corpora = (
         hersh["sequenceId"]
-        .str.extract(r"^multilang::zh::([^:]+)::")[0]
+        .str.extract(r"^multilang::([^:]+)::")[0]
         .dropna()
         .unique()
     )
-    leaked = set(hersh_zh_corpora) - ALLOWED
+    leaked = set(hersh_corpora) - ALLOWED
     if leaked:
-        print(f"FAIL #2 hersh-zh leaked non-restricted Mandarin: {leaked}")
+        print(f"FAIL #2 hersh-equiv leaked non-restricted Mandarin: {leaked}")
         return 1
-    print(f"OK #2 hersh-zh corpora: {sorted(hersh_zh_corpora)}")
+    print(f"OK #2 hersh-equiv corpora: {sorted(hersh_corpora)}")
 
     # 3. has_timestamps==0 fraction within v2 band.
     frac_missing = (df["has_timestamps"] == 0).mean()

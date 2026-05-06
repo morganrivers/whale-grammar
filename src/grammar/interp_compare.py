@@ -483,12 +483,11 @@ def render_multilang_block(
     vocab: list[str],
     speaker_pool: list[str] | None = None,
 ) -> str:
-    """Multilang transcript with sub-tokens concatenated within a word,
-    word-spaced within an utterance, prefixes (`jp:`/`en:`/`zh:`)
-    stripped:
+    """Mandarin transcript with sub-syllables concatenated within a word,
+    word-spaced within an utterance:
 
-      *CHI:\tkondo kondo no t .
-      *MOT:\tsoo da ne .
+      *CHI:\tgang1cai2 ni3 chi1 le5 ma5 .
+      *MOT:\tchi1 le5 .
 
     Bucket 0 (intra_word)   → concatenate to current word, no separator.
     Bucket 1 (word_bound)   → finalise current word, start a new word
@@ -496,8 +495,10 @@ def render_multilang_block(
     Bucket 2 (period)       → end utterance with `.`, same speaker.
     Bucket 3 (switch)       → end utterance with `.`, new speaker.
 
-    A language switch mid-word also forces a space (so a JP word with an
-    EN phoneme inserted reads `kondo K do` rather than `kondoKdo`).
+    The `split_lang` shim still strips a leading `lang:` prefix on
+    sub-tokens for backwards compatibility with v1/v2 multilang
+    checkpoints (which used `zh:`/`jp:`/`en:` prefixes); current Mandarin-
+    only data has no prefix.
     """
     if not tokens:
         return ""

@@ -405,123 +405,50 @@ def train(
 # ---------------------------------------------------------------------------
 
 
-def main(argv: list[str] | None = None) -> None:
-    p = argparse.ArgumentParser()
-    p.add_argument("--source", choices=["whale", "childes", "multilang"],
-                   required=True)
-    p.add_argument("--seed", type=int, default=42)
-    p.add_argument("--n-seeds", type=int, default=3)
-    p.add_argument("--val-frac", type=float, default=0.1)
-    p.add_argument("--epochs", type=int, default=40)
-    p.add_argument("--lr", type=float, default=1e-3)
-    p.add_argument("--bs", type=int, default=128)
-    p.add_argument("--dt-weight", type=float, default=0.5,
-                   help="Loss weight on the DT head; coda head is fixed at 1.0.")
-    p.add_argument("--n-ctx", type=int, default=N_CTX,
-                   help=f"Context length K (window is K+1). Default {N_CTX}.")
-    p.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
-    args = p.parse_args(argv)
+# ---------------------------------------------------------------------------
+# Tier partitioning — for the two-stage curriculum vs mixed comparison
+# ---------------------------------------------------------------------------
 
-    rng = random.Random(args.seed)
-    torch.manual_seed(args.seed)
-    np.random.seed(args.seed)
 
-    corpus = load_corpus(args.source, n_ctx=args.n_ctx)
-    print(f"loaded {args.source}: {len(corpus.conversations)} conversations, "
-          f"V={len(corpus.vocab)}, dt scheme={corpus.dt_scheme_name} "
-          f"({corpus.n_dt_buckets} buckets), K={args.n_ctx}")
+# Held-back / clean tier prefixes per source. The held-back tier (Hersh-Pacific
+# for whale, Hersh-equiv for multilang) has Whale=UNK + has_timestamps=0 — it
+# carries the bulk of the tokens but has no labelled timing/identity. The clean
+# tier is the labelled Caribbean DSWP+Birth recordings (whale) or the parallel
+# Mandarin Birth+DSWP allocations (multilang).
+TIER_PREFIXES = {
+    "whale": {
+        "hersh": ("hersh2022_pacific::",),
+        "clean": ("sharma2024_dswp::", "sharma2025_birth::"),
+    },
+    "multilang": {
+        "hersh": ("multilang::",),
+        "clean": ("zh_dswp::", "zh_birth::"),
+    },
+}
 
-    n_total = len(corpus.conversations)
-    if n_total < args.n_seeds + 5:
-        raise SystemExit(f"too few conversations ({n_total}) to hold out seeds")
 
-    if args.source == "multilang":
-        # For demo continuations to be legible we pick the held-out seeds
-        # from the clean tiers — one from `zh_birth` and one from the
-        # unmasked half of `zh_dswp` — so the speaker channel and DT
-        # channel are both present in the prefix that feeds the
-        # continuation generator. The Hersh-equiv majority (UNK +
-        # has_timestamps=0) still trains the model; we just don't pick
-        # display seeds from there.
-        birth_pool = [
-            i for i, c in enumerate(corpus.conversations)
-            if c.seq_id.startswith("zh_birth::")
-            and not any("::UNK" in s for s in c.speakers)
-        ]
-        dswp_clean_pool = [
-            i for i, c in enumerate(corpus.conversations)
-            if c.seq_id.startswith("zh_dswp::")
-            and not any("::UNK" in s for s in c.speakers)
-        ]
-        rng.shuffle(birth_pool)
-        rng.shuffle(dswp_clean_pool)
-        seed_idx: list[int] = []
-        if birth_pool:
-            seed_idx.append(birth_pool[0])
-        if dswp_clean_pool:
-            seed_idx.append(dswp_clean_pool[0])
-        if not seed_idx:
-            raise SystemExit("no clean (zh_birth / zh_dswp-clean) seeds available")
-        held = set(seed_idx)
-        rest_idx = [i for i in range(n_total) if i not in held]
-        rng.shuffle(rest_idx)
-        print(f"held-out seeds (clean tiers only): "
-              f"{[corpus.conversations[i].seq_id for i in seed_idx]}")
-    else:
-        perm = list(range(n_total))
-        rng.shuffle(perm)
-        seed_idx = perm[: args.n_seeds]
-        rest_idx = perm[args.n_seeds :]
-    n_val = max(1, int(args.val_frac * len(rest_idx)))
-    val_idx = rest_idx[:n_val]
-    train_idx = rest_idx[n_val:]
+def tier_of(seq_id: str, source: str) -> str:
+    """Return 'hersh' / 'clean' / 'other' for a sequenceId under the given source."""
+    prefixes = TIER_PREFIXES.get(source)
+    if prefixes is None:
+        return "other"
+    if any(seq_id.startswith(p) for p in prefixes["hersh"]):
+        return "hersh"
+    if any(seq_id.startswith(p) for p in prefixes["clean"]):
+        return "clean"
+    return "other"
 
-    train_convs = [corpus.conversations[i] for i in train_idx]
-    val_convs = [corpus.conversations[i] for i in val_idx]
 
-    train_tok, train_dt = make_windows(train_convs, args.n_ctx)
-    val_tok, val_dt = make_windows(val_convs, args.n_ctx)
-    print(f"train windows: {tuple(train_tok.shape)};  val windows: {tuple(val_tok.shape)}")
-
-    if train_tok.size(0) == 0 or val_tok.size(0) == 0:
-        raise SystemExit("not enough windows after split")
-
-    model = make_m7_hooked(d_vocab=len(corpus.vocab), n_ctx=args.n_ctx)
-    dt_head = nn.Linear(model.cfg.d_model, corpus.n_dt_buckets)
-    n_params = sum(p.numel() for p in model.parameters()) + sum(p.numel() for p in dt_head.parameters())
-    print(f"model + dt_head params: {n_params:,}")
-
-    log_lines: list[str] = [
-        f"source: {args.source}",
-        f"seed: {args.seed}",
-        f"V: {len(corpus.vocab)}; n_dt_buckets: {corpus.n_dt_buckets}; K: {args.n_ctx}",
-        f"n_params: {n_params:,}",
-        f"dt_weight: {args.dt_weight}",
-        f"n_train_windows: {train_tok.size(0)}; n_val_windows: {val_tok.size(0)}",
-        f"held-out seeds: {[corpus.conversations[i].seq_id for i in seed_idx]}",
-    ]
-
-    model, dt_head = train(
-        model, dt_head,
-        train_tok, train_dt, val_tok, val_dt,
-        epochs=args.epochs, lr=args.lr, bs=args.bs,
-        dt_weight=args.dt_weight,
-        log_lines=log_lines, device=args.device,
-    )
-
-    model = model.cpu(); dt_head = dt_head.cpu()
-    final = eval_final_position(model, dt_head, val_tok, val_dt)
-    log_lines.append("")
-    log_lines.append(f"val final-position coda bpt: {final['coda_bpt']:.4f}  "
-                     f"(M7 benchmark on whale: 3.186)")
-    log_lines.append(f"val final-position coda acc: {final['coda_acc']:.4f}")
-    log_lines.append(f"val final-position dt   bpt: {final['dt_bpt']:.4f}")
-    log_lines.append(f"val final-position dt   acc: {final['dt_acc']:.4f}")
-    for ln in log_lines[-4:]:
-        print(ln)
-
-    # Save
-    out_dir = CKPT_DIR / args.source
+def _save_checkpoint(
+    out_dir: Path,
+    model, dt_head,
+    corpus: Corpus,
+    args,
+    final: dict,
+    seed_idx: list[int],
+    log_lines: list[str],
+    n_params: int,
+) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     torch.save(model.state_dict(), out_dir / "model.pt")
     torch.save(dt_head.state_dict(), out_dir / "dt_head.pt")
@@ -550,7 +477,236 @@ def main(argv: list[str] | None = None) -> None:
         ))
     (out_dir / "seeds.json").write_text(json.dumps(seeds_payload, indent=2))
     (out_dir / "train_log.txt").write_text("\n".join(log_lines))
-    print(f"\nwrote checkpoint to {out_dir}/")
+
+
+def _new_model(corpus: Corpus, n_ctx: int, seed: int) -> tuple[object, nn.Linear, int]:
+    """Re-seeded fresh model + dt_head (for fair head-to-head between
+    mixed-baseline and curriculum runs)."""
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+    model = make_m7_hooked(d_vocab=len(corpus.vocab), n_ctx=n_ctx)
+    dt_head = nn.Linear(model.cfg.d_model, corpus.n_dt_buckets)
+    n_params = sum(p.numel() for p in model.parameters()) + sum(
+        p.numel() for p in dt_head.parameters())
+    return model, dt_head, n_params
+
+
+def main(argv: list[str] | None = None) -> None:
+    p = argparse.ArgumentParser()
+    p.add_argument("--source", choices=["whale", "childes", "multilang"],
+                   required=True)
+    p.add_argument("--seed", type=int, default=42)
+    p.add_argument("--n-seeds", type=int, default=3)
+    p.add_argument("--val-frac", type=float, default=0.1,
+                   help="Validation fraction of the *clean* tier; held-out is "
+                        "always clean (DSWP+Birth) regardless of mode.")
+    p.add_argument("--epochs", type=int, default=40,
+                   help="Per-phase epoch budget. Mixed baseline uses --epochs "
+                        "on the merged set; curriculum uses --epochs on each "
+                        "of phase-1 (Hersh) and phase-2 (clean).")
+    p.add_argument("--lr", type=float, default=1e-3)
+    p.add_argument("--bs", type=int, default=128)
+    p.add_argument("--dt-weight", type=float, default=0.5,
+                   help="Loss weight on the DT head; coda head is fixed at 1.0.")
+    p.add_argument("--n-ctx", type=int, default=N_CTX,
+                   help=f"Context length K (window is K+1). Default {N_CTX}.")
+    p.add_argument("--mode", choices=["compare", "mixed", "curriculum"],
+                   default="compare",
+                   help="`compare` runs both mixed-baseline and curriculum "
+                        "side-by-side and reports the held-out gap. `mixed` / "
+                        "`curriculum` runs only one.")
+    p.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
+    args = p.parse_args(argv)
+
+    rng = random.Random(args.seed)
+    torch.manual_seed(args.seed)
+    np.random.seed(args.seed)
+
+    corpus = load_corpus(args.source, n_ctx=args.n_ctx)
+    print(f"loaded {args.source}: {len(corpus.conversations)} conversations, "
+          f"V={len(corpus.vocab)}, dt scheme={corpus.dt_scheme_name} "
+          f"({corpus.n_dt_buckets} buckets), K={args.n_ctx}")
+
+    n_total = len(corpus.conversations)
+    if n_total < args.n_seeds + 5:
+        raise SystemExit(f"too few conversations ({n_total}) to hold out seeds")
+
+    # Tier partition
+    hersh_idx: list[int] = []
+    clean_idx: list[int] = []
+    other_idx: list[int] = []
+    for i, c in enumerate(corpus.conversations):
+        t = tier_of(c.seq_id, args.source)
+        if t == "hersh":
+            hersh_idx.append(i)
+        elif t == "clean":
+            clean_idx.append(i)
+        else:
+            other_idx.append(i)
+    print(f"tier partition: hersh={len(hersh_idx)}, clean={len(clean_idx)}, "
+          f"other={len(other_idx)}")
+
+    # If the source has no Hersh-vs-clean split (e.g. childes), treat all as
+    # clean and skip the curriculum/comparison.
+    has_tiers = bool(hersh_idx) and bool(clean_idx) and args.source in TIER_PREFIXES
+    if not has_tiers:
+        clean_idx = list(range(n_total))
+        hersh_idx = []
+
+    # Held-out seeds: prefer unmasked clean conversations so generation has
+    # both speaker + DT channels in the prefix.
+    clean_unmasked = [
+        i for i in clean_idx
+        if not any("::UNK" in s for s in corpus.conversations[i].speakers)
+    ]
+    rng.shuffle(clean_unmasked)
+    seed_idx: list[int] = clean_unmasked[: args.n_seeds]
+    if not seed_idx:
+        if not has_tiers:
+            # Childes / fallback: just shuffle and take.
+            perm = list(range(n_total))
+            rng.shuffle(perm)
+            seed_idx = perm[: args.n_seeds]
+        else:
+            raise SystemExit(
+                f"no unmasked clean conversations to use as held-out seeds")
+    held = set(seed_idx)
+    print(f"held-out seeds (clean tier): "
+          f"{[corpus.conversations[i].seq_id for i in seed_idx]}")
+
+    # Clean train/val split (val is always carved out of clean — that's the
+    # tier the user is downstream-evaluating on).
+    clean_rest = [i for i in clean_idx if i not in held]
+    rng.shuffle(clean_rest)
+    n_val = max(1, int(args.val_frac * len(clean_rest)))
+    val_idx = clean_rest[:n_val]
+    train_clean_idx = clean_rest[n_val:]
+    train_hersh_idx = list(hersh_idx)
+
+    val_convs = [corpus.conversations[i] for i in val_idx]
+    train_clean_convs = [corpus.conversations[i] for i in train_clean_idx]
+    train_hersh_convs = [corpus.conversations[i] for i in train_hersh_idx]
+
+    val_tok, val_dt = make_windows(val_convs, args.n_ctx)
+    clean_tok, clean_dt = make_windows(train_clean_convs, args.n_ctx)
+    hersh_tok, hersh_dt = make_windows(train_hersh_convs, args.n_ctx)
+    mixed_tok = torch.cat([hersh_tok, clean_tok], dim=0) if hersh_tok.size(0) else clean_tok
+    mixed_dt = torch.cat([hersh_dt, clean_dt], dim=0) if hersh_dt.size(0) else clean_dt
+
+    print(f"windows — hersh: {tuple(hersh_tok.shape)}; "
+          f"clean: {tuple(clean_tok.shape)}; "
+          f"mixed: {tuple(mixed_tok.shape)}; "
+          f"val (clean): {tuple(val_tok.shape)}")
+    if val_tok.size(0) == 0:
+        raise SystemExit("not enough clean windows for validation")
+
+    base_log: list[str] = [
+        f"source: {args.source}",
+        f"seed: {args.seed}",
+        f"V: {len(corpus.vocab)}; n_dt_buckets: {corpus.n_dt_buckets}; K: {args.n_ctx}",
+        f"dt_weight: {args.dt_weight}",
+        f"tier partition: hersh={len(hersh_idx)}, clean={len(clean_idx)}, "
+        f"other={len(other_idx)}",
+        f"windows: hersh={hersh_tok.size(0)}, clean={clean_tok.size(0)}, "
+        f"val={val_tok.size(0)}",
+        f"held-out seeds: {[corpus.conversations[i].seq_id for i in seed_idx]}",
+    ]
+
+    do_mixed = args.mode in ("compare", "mixed")
+    do_curr = args.mode in ("compare", "curriculum") and has_tiers
+    if args.mode == "curriculum" and not has_tiers:
+        print(f"WARNING: source={args.source} has no Hersh tier; "
+              f"falling back to mixed.")
+        do_mixed = True
+        do_curr = False
+
+    results: dict[str, dict] = {}
+
+    # === Mixed baseline ============================================
+    if do_mixed:
+        print("\n=== MIXED BASELINE (single-phase, hersh+clean merged) ===")
+        m, dh, n_params = _new_model(corpus, args.n_ctx, args.seed)
+        log = list(base_log) + [
+            "", "=== mixed baseline ===",
+            f"n_train_windows: {mixed_tok.size(0)} (hersh+clean merged)",
+            f"epochs: {args.epochs}",
+        ]
+        m, dh = train(
+            m, dh, mixed_tok, mixed_dt, val_tok, val_dt,
+            epochs=args.epochs, lr=args.lr, bs=args.bs,
+            dt_weight=args.dt_weight, log_lines=log, device=args.device,
+        )
+        m = m.cpu(); dh = dh.cpu()
+        final = eval_final_position(m, dh, val_tok, val_dt)
+        log += ["", f"val final-position coda bpt: {final['coda_bpt']:.4f}",
+                f"val final-position coda acc: {final['coda_acc']:.4f}",
+                f"val final-position dt   bpt: {final['dt_bpt']:.4f}",
+                f"val final-position dt   acc: {final['dt_acc']:.4f}"]
+        for ln in log[-4:]:
+            print(ln)
+        results["mixed"] = final
+        suffix = "_baseline" if do_curr else ""
+        out_dir = CKPT_DIR / f"{args.source}{suffix}"
+        _save_checkpoint(out_dir, m, dh, corpus, args, final, seed_idx, log, n_params)
+        print(f"wrote mixed checkpoint to {out_dir}/")
+
+    # === Two-phase curriculum =====================================
+    if do_curr:
+        print("\n=== CURRICULUM (phase-1 hersh → phase-2 clean) ===")
+        m, dh, n_params = _new_model(corpus, args.n_ctx, args.seed)
+        log = list(base_log) + [
+            "", "=== curriculum ===",
+            f"phase-1 (hersh) windows: {hersh_tok.size(0)}",
+            f"phase-2 (clean) windows: {clean_tok.size(0)}",
+            f"epochs per phase: {args.epochs}",
+            "", "--- phase 1: train on hersh tier ---",
+        ]
+        # Phase 1 also validates against clean — early stopping should still
+        # care about clean-tier generalisation, not hersh val.
+        m, dh = train(
+            m, dh, hersh_tok, hersh_dt, val_tok, val_dt,
+            epochs=args.epochs, lr=args.lr, bs=args.bs,
+            dt_weight=args.dt_weight, log_lines=log, device=args.device,
+        )
+        log.append("")
+        log.append("--- phase 2: fine-tune on clean tier ---")
+        m, dh = train(
+            m, dh, clean_tok, clean_dt, val_tok, val_dt,
+            epochs=args.epochs, lr=args.lr, bs=args.bs,
+            dt_weight=args.dt_weight, log_lines=log, device=args.device,
+        )
+        m = m.cpu(); dh = dh.cpu()
+        final = eval_final_position(m, dh, val_tok, val_dt)
+        log += ["", f"val final-position coda bpt: {final['coda_bpt']:.4f}",
+                f"val final-position coda acc: {final['coda_acc']:.4f}",
+                f"val final-position dt   bpt: {final['dt_bpt']:.4f}",
+                f"val final-position dt   acc: {final['dt_acc']:.4f}"]
+        for ln in log[-4:]:
+            print(ln)
+        results["curriculum"] = final
+        # Curriculum is the new default checkpoint at the canonical path
+        # (predict_kfold and interp_compare keep working unchanged).
+        out_dir = CKPT_DIR / args.source
+        _save_checkpoint(out_dir, m, dh, corpus, args, final, seed_idx, log, n_params)
+        print(f"wrote curriculum checkpoint to {out_dir}/")
+
+    # === Side-by-side comparison ==================================
+    if results:
+        print("\n=== held-out (clean-tier) comparison ===")
+        header = f"{'mode':>11}  {'coda_bpt':>9}  {'coda_acc':>9}  {'dt_bpt':>9}  {'dt_acc':>9}"
+        print(header)
+        for mode in ("mixed", "curriculum"):
+            r = results.get(mode)
+            if r is None:
+                continue
+            print(f"{mode:>11}  {r['coda_bpt']:>9.4f}  {r['coda_acc']:>9.4f}  "
+                  f"{r['dt_bpt']:>9.4f}  {r['dt_acc']:>9.4f}")
+        if "mixed" in results and "curriculum" in results:
+            d_bpt = results["curriculum"]["coda_bpt"] - results["mixed"]["coda_bpt"]
+            d_acc = results["curriculum"]["coda_acc"] - results["mixed"]["coda_acc"]
+            print(f"  Δ(curriculum − mixed): coda_bpt={d_bpt:+.4f}, "
+                  f"coda_acc={d_acc:+.4f}  "
+                  f"({'curriculum better' if d_bpt < 0 else 'mixed better'} on bpt)")
 
 
 if __name__ == "__main__":
