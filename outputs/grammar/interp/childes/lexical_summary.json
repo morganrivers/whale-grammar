@@ -1,0 +1,12 @@
+{
+  "source": "childes",
+  "V": 1605,
+  "n_corpus_tokens": 39318,
+  "n_cooc_windows": 4000,
+  "kl_summary": {
+    "n_eligible": 76,
+    "mean": 1.8993934004134423,
+    "median": 1.842899252705378,
+    "max": 4.499539424062201
+  }
+}

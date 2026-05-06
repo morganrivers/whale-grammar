@@ -1,0 +1,27 @@
+source: whale
+seed: 42
+V: 467; n_dt_buckets: 6; K: 8
+n_params: 161,241
+dt_weight: 0.5
+n_train_windows: 30609; n_val_windows: 4520
+held-out seeds: ['hersh2022_pacific::29', 'hersh2022_pacific::26', 'sharma2024_dswp::sw100a002_9490']
+epoch   1  train coda=4.352 dt=1.059  | val coda=3.617 dt=0.401
+epoch   2  train coda=3.633 dt=0.873  | val coda=3.483 dt=0.380
+epoch   3  train coda=3.502 dt=0.845  | val coda=3.444 dt=0.377
+epoch   4  train coda=3.432 dt=0.830  | val coda=3.425 dt=0.358
+epoch   5  train coda=3.384 dt=0.821  | val coda=3.391 dt=0.376
+epoch   6  train coda=3.348 dt=0.812  | val coda=3.383 dt=0.369
+epoch   7  train coda=3.321 dt=0.807  | val coda=3.389 dt=0.359
+epoch   8  train coda=3.299 dt=0.802  | val coda=3.365 dt=0.375
+epoch   9  train coda=3.282 dt=0.800  | val coda=3.355 dt=0.331
+epoch  10  train coda=3.270 dt=0.798  | val coda=3.356 dt=0.334
+epoch  11  train coda=3.257 dt=0.793  | val coda=3.379 dt=0.338
+epoch  12  train coda=3.246 dt=0.793  | val coda=3.378 dt=0.356
+epoch  13  train coda=3.238 dt=0.791  | val coda=3.362 dt=0.363
+epoch  14  train coda=3.230 dt=0.792  | val coda=3.369 dt=0.371
+early stop at epoch 14
+
+val final-position coda bpt: 5.0086  (M7 benchmark on whale: 3.186)
+val final-position coda acc: 0.2982
+val final-position dt   bpt: 0.3374
+val final-position dt   acc: 0.9642

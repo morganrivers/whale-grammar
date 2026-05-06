@@ -705,27 +705,43 @@ def evaluate_ablation_fold(seq_dict, dt_dict, train_ids, test_ids):
 
 
 def _train_multitask(model, train_inputs, train_targets, val_inputs,
-                     val_targets, fast: bool, seed: int = 0):
+                     val_targets, fast: bool, seed: int = 0,
+                     single_task: bool = False):
     """Multi-task training loop for ``MultiChannelMultiTask``. ``fast=True``
     uses AdamW + constant lr=1e-3 + bs=128 + 80 epochs + ES patience 10.
     ``fast=False`` uses AdamW + CosineAnnealingLR + bs=1000 + 5000 epochs
-    + dropout 0.2 + no ES."""
+    + dropout 0.2 + no ES.
+
+    ``single_task=True`` zeros the auxiliary-head loss weights so the
+    encoder is supervised only by the Coda CE. Used by the R1 variant
+    to isolate the effect of multi-channel inputs from the effect of
+    multi-task supervision.
+    """
     torch.manual_seed(seed)
 
     # Loss weights: CE losses average ~3-5 nats; L1 on duration is
     # ~0.3-0.5; L1 on log-dt is ~1-3. Down-weight the regression
     # targets so they don't drown out the categorical signal.
-    weights = dict(whale=1.0, coda=1.0, orn=0.5, sync=0.5,
-                   dur=0.2, td=0.2)
+    if single_task:
+        weights = dict(whale=0.0, coda=1.0, orn=0.0, sync=0.0,
+                       dur=0.0, td=0.0)
+    else:
+        weights = dict(whale=1.0, coda=1.0, orn=0.5, sync=0.5,
+                       dur=0.2, td=0.2)
     ce = nn.CrossEntropyLoss()
     l1 = nn.L1Loss()
 
     def _step_loss(out, tgt):
+        # Whale and Coda heads emit V+1 logits with index 0 reserved for
+        # the PAD slot used in input embeddings. Shift targets by +1 so
+        # the loss aligns with the same convention used at eval time.
+        # Orn / Sync heads have no PAD slot (orn/sync are 0/1 only) so
+        # their targets pass through unchanged.
         loss = (
-            weights["whale"] * ce(out["whale"], tgt["whale"])
-            + weights["coda"] * ce(out["coda"], tgt["coda"])
-            + weights["orn"] * ce(out["orn"], (tgt["orn"] >= 0).long() * tgt["orn"].clamp(min=0))
-            + weights["sync"] * ce(out["sync"], (tgt["sync"] >= 0).long() * tgt["sync"].clamp(min=0))
+            weights["whale"] * ce(out["whale"], (tgt["whale"] + 1).long())
+            + weights["coda"] * ce(out["coda"], (tgt["coda"] + 1).long())
+            + weights["orn"] * ce(out["orn"], tgt["orn"].clamp(min=0).long())
+            + weights["sync"] * ce(out["sync"], tgt["sync"].clamp(min=0).long())
             + weights["dur"] * l1(out["dur"], tgt["dur"])
             + weights["td"] * l1(out["td"], tgt["td_log"])
         )
@@ -744,10 +760,12 @@ def _train_multitask(model, train_inputs, train_targets, val_inputs,
     n = train_inputs["coda"].shape[0]
 
     def _coda_val_loss():
+        # Same +1 shift as in the training loss (output position 0 is
+        # the PAD slot reserved by the input embedding).
         model.eval()
         with torch.no_grad():
             out = model(**val_inputs)
-            return float(ce(out["coda"], val_targets["coda"]).item())
+            return float(ce(out["coda"], (val_targets["coda"] + 1).long()).item())
 
     best_val = float("inf")
     best_state = {k: v.clone() for k, v in model.state_dict().items()}
@@ -789,94 +807,123 @@ def _to_tensors(d, int_keys=("whale", "coda", "orn", "sync", "has_ts"),
     return out
 
 
-def evaluate_redesign_fold(per_seq_data, train_ids, test_ids,
-                           V_whale, V_coda, fast: bool):
-    """Run R0 (B4 single-channel control) and R2 (multi-channel multi-task)
-    on one fold. Both report Coda-head bits/token + accuracy."""
-    K = 25
-    res: dict[str, dict] = {}
-
-    # ---------------- R0 control: single-channel Coda + DT, K=25 ----------
-    # Build legacy windows (string Coda tokens + (dt_log, has_ts)) using
-    # the existing build_windows_with_dt helper. We need string-token
-    # streams for that, so reconstruct from per_seq_data.
-    seq_dict = {sid: [str(c) for c in d["coda"]] for sid, d in per_seq_data.items()}
-    dt_dict = {sid: [
-        # Recover raw seconds from log_dt is impossible (we threw away
-        # the value when has_ts=0). For R0 we encode again from the
-        # td_log stream by inverting log(0.1+dt) for has_ts=1 rows;
-        # missing rows pass -1 through to _encode_dt's sentinel branch.
-        (float(np.exp(d["td_log"][i]) - DT_LOG_OFFSET) if d["has_ts"][i] else -1.0)
-        for i in range(len(d["coda"]))
-    ] for sid, d in per_seq_data.items()}
-    Xdt_tr, ydt_tr, DT_tr = build_windows_with_dt(seq_dict, dt_dict, train_ids, K)
-    Xdt_te, ydt_te, DT_te = build_windows_with_dt(seq_dict, dt_dict, test_ids, K)
-    classes = sorted(set(ydt_tr.tolist()) | set(ydt_te.tolist()) | {PAD})
-    V_k = len(classes)
-    res["R0_control_B4mimic"] = evaluate_torch_model_dt(
-        "R0-single-chan",
-        lambda V: MiniTransformerDT(V, K, d=32, n_layers=3, n_heads=8),
-        Xdt_tr, DT_tr, ydt_tr, Xdt_te, DT_te, ydt_te, V_k, classes,
-    )
-
-    # ---------------- R2 redesign: multi-channel multi-task ----------------
-    Xtr, Ytr = build_multi_windows(per_seq_data, train_ids, K)
-    Xte, Yte = build_multi_windows(per_seq_data, test_ids, K)
-
-    # Train/val split on training fold.
-    rng = np.random.default_rng(0)
-    n_tr = Xtr["coda"].shape[0]
-    perm = rng.permutation(n_tr)
-    n_val = max(64, int(0.1 * n_tr))
-    val_idx, tr_idx = perm[:n_val], perm[n_val:]
-
-    train_inputs = _to_tensors({k: v[tr_idx] for k, v in Xtr.items()})
-    train_targets = _to_tensors({k: v[tr_idx] for k, v in Ytr.items()})
-    val_inputs = _to_tensors({k: v[val_idx] for k, v in Xtr.items()})
-    val_targets = _to_tensors({k: v[val_idx] for k, v in Ytr.items()})
-    test_inputs = _to_tensors(Xte)
-    test_targets = _to_tensors(Yte)
-
-    model = MultiChannelMultiTask(
-        V_whale=V_whale, V_coda=V_coda, k=K, d=32,
-        n_layers=3, n_heads=8,
-        dropout=(0.2 if not fast else 0.1),
-    )
-    n_params = sum(p.numel() for p in model.parameters())
-    _train_multitask(
-        model,
-        train_inputs, train_targets,
-        val_inputs, val_targets,
-        fast=fast,
-    )
-
+def _eval_multichannel(model, test_inputs, test_targets):
+    """Coda-head bpt + accuracy on test windows. Shared by R1 and R2."""
     model.eval()
     with torch.no_grad():
         out = model(**test_inputs)
         coda_logits = out["coda"]
         log_probs = torch.log_softmax(coda_logits, dim=-1)
-        # Targets in Ytr/Yte are coda ids in [0, V_coda); model head
-        # outputs V_coda+1 with index 0 reserved for PAD. Shift targets
-        # by +1 to match.
         coda_targets = (test_targets["coda"] + 1).long()
         ll = log_probs.gather(1, coda_targets.unsqueeze(1)).squeeze(1)
         bits = -ll.mean().item() / math.log(2)
         pred = coda_logits.argmax(-1)
         acc = (pred == coda_targets).float().mean().item()
+    return float(acc), float(bits)
 
-    res["R2_multichannel_multitask"] = dict(
-        accuracy=float(acc),
-        bits_per_token=float(bits),
-        n_params=int(n_params),
-    )
+
+def evaluate_redesign_fold(per_seq_data, train_ids, test_ids,
+                           V_whale, V_coda, fast: bool,
+                           variants: tuple[str, ...] = ("R0", "R1", "R2")):
+    """Run a subset of {R0 control, R1 multi-channel single-task, R2
+    multi-channel multi-task} on one fold. All variants report
+    Coda-head bits/token + accuracy."""
+    K = 25
+    res: dict[str, dict] = {}
+
+    n_train = n_test = None
+
+    # ---------------- R0 control: single-channel Coda + DT, K=25 ----------
+    if "R0" in variants:
+        # Build legacy windows (string Coda tokens + (dt_log, has_ts)).
+        seq_dict = {sid: [str(c) for c in d["coda"]] for sid, d in per_seq_data.items()}
+        dt_dict = {sid: [
+            (float(np.exp(d["td_log"][i]) - DT_LOG_OFFSET) if d["has_ts"][i] else -1.0)
+            for i in range(len(d["coda"]))
+        ] for sid, d in per_seq_data.items()}
+        Xdt_tr, ydt_tr, DT_tr = build_windows_with_dt(seq_dict, dt_dict, train_ids, K)
+        Xdt_te, ydt_te, DT_te = build_windows_with_dt(seq_dict, dt_dict, test_ids, K)
+        classes = sorted(set(ydt_tr.tolist()) | set(ydt_te.tolist()) | {PAD})
+        V_k = len(classes)
+        res["R0_control_B4mimic"] = evaluate_torch_model_dt(
+            "R0-single-chan",
+            lambda V: MiniTransformerDT(V, K, d=32, n_layers=3, n_heads=8),
+            Xdt_tr, DT_tr, ydt_tr, Xdt_te, DT_te, ydt_te, V_k, classes,
+        )
+
+    # ---------------- Multi-channel windowing (shared by R1 + R2) ---------
+    needs_multi = ("R1" in variants) or ("R2" in variants)
+    if needs_multi:
+        Xtr, Ytr = build_multi_windows(per_seq_data, train_ids, K)
+        Xte, Yte = build_multi_windows(per_seq_data, test_ids, K)
+        n_train = int(Xtr["coda"].shape[0])
+        n_test = int(Xte["coda"].shape[0])
+
+        rng = np.random.default_rng(0)
+        n_tr = Xtr["coda"].shape[0]
+        perm = rng.permutation(n_tr)
+        n_val = max(64, int(0.1 * n_tr))
+        val_idx, tr_idx = perm[:n_val], perm[n_val:]
+
+        train_inputs = _to_tensors({k: v[tr_idx] for k, v in Xtr.items()})
+        train_targets = _to_tensors({k: v[tr_idx] for k, v in Ytr.items()})
+        val_inputs = _to_tensors({k: v[val_idx] for k, v in Xtr.items()})
+        val_targets = _to_tensors({k: v[val_idx] for k, v in Ytr.items()})
+        test_inputs = _to_tensors(Xte)
+        test_targets = _to_tensors(Yte)
+
+    # ---------------- R1: multi-channel input + Coda CE only --------------
+    if "R1" in variants:
+        m_r1 = MultiChannelMultiTask(
+            V_whale=V_whale, V_coda=V_coda, k=K, d=32,
+            n_layers=3, n_heads=8,
+            dropout=(0.2 if not fast else 0.1),
+        )
+        n_params = sum(p.numel() for p in m_r1.parameters())
+        _train_multitask(
+            m_r1,
+            train_inputs, train_targets,
+            val_inputs, val_targets,
+            fast=fast,
+            single_task=True,
+        )
+        acc, bits = _eval_multichannel(m_r1, test_inputs, test_targets)
+        res["R1_multichannel_singletask"] = dict(
+            accuracy=acc,
+            bits_per_token=bits,
+            n_params=int(n_params),
+        )
+
+    # ---------------- R2: multi-channel input + multi-task heads ----------
+    if "R2" in variants:
+        m_r2 = MultiChannelMultiTask(
+            V_whale=V_whale, V_coda=V_coda, k=K, d=32,
+            n_layers=3, n_heads=8,
+            dropout=(0.2 if not fast else 0.1),
+        )
+        n_params = sum(p.numel() for p in m_r2.parameters())
+        _train_multitask(
+            m_r2,
+            train_inputs, train_targets,
+            val_inputs, val_targets,
+            fast=fast,
+            single_task=False,
+        )
+        acc, bits = _eval_multichannel(m_r2, test_inputs, test_targets)
+        res["R2_multichannel_multitask"] = dict(
+            accuracy=acc,
+            bits_per_token=bits,
+            n_params=int(n_params),
+        )
 
     res["_meta"] = dict(
-        n_train=int(Xtr["coda"].shape[0]),
-        n_test=int(Xte["coda"].shape[0]),
+        n_train=n_train,
+        n_test=n_test,
         V_coda=int(V_coda),
         V_whale=int(V_whale),
         K=K,
         fast_mode=bool(fast),
+        variants=list(variants),
     )
     return res
 
@@ -949,6 +996,14 @@ def main(argv: list[str] | None = None) -> None:
         "CosineAnnealingLR + bs=1000 + 5000 epochs + dropout 0.2, no "
         "early stopping. Multiplies wall-time per fold by ~30×.",
     )
+    p.add_argument(
+        "--variants",
+        default="R0,R1,R2",
+        help="(Only with --redesign) Comma-separated subset of "
+        "{R0,R1,R2} to run. R0 = single-channel control; "
+        "R1 = multi-channel + Coda CE only; R2 = multi-channel + "
+        "multi-task heads. Default: all three.",
+    )
     args = p.parse_args(argv)
 
     n_modes = sum([args.quick, args.ablation, args.redesign])
@@ -1011,9 +1066,11 @@ def main(argv: list[str] | None = None) -> None:
         if args.ablation:
             res = evaluate_ablation_fold(seq_dict, dt_dict, train_ids, test_ids)
         elif args.redesign:
+            variants = tuple(v.strip() for v in args.variants.split(","))
             res = evaluate_redesign_fold(
                 redesign_data, train_ids, test_ids,
                 V_whale=V_whale, V_coda=V_coda, fast=fast,
+                variants=variants,
             )
         else:
             res = evaluate_one_fold(seq_dict, train_ids, test_ids, K, quick=args.quick)
@@ -1125,6 +1182,7 @@ def main(argv: list[str] | None = None) -> None:
         "B3_4L_d64_K8_DT": "MiniTransformer 4L, 4h, d=64, K=8 + DT",
         "B4_3L_d32_K25_DT": "whale-gpt-main shape: 3L, 8h, d=32, K=25 + DT",
         "R0_control_B4mimic": "R0 control (B4 mimic): single-channel Coda + DT",
+        "R1_multichannel_singletask": "R1: multi-channel inputs, Coda CE only",
         "R2_multichannel_multitask": "R2 redesign: multi-channel + multi-task",
     }
     model_order = [m for m in label_for if m in summary]
@@ -1168,23 +1226,42 @@ def main(argv: list[str] | None = None) -> None:
                 "longer-context contributions."
             )
     elif args.redesign:
-        r0 = summary.get("R0_control_B4mimic")
-        r2 = summary.get("R2_multichannel_multitask")
-        if r0 and r2:
-            delta = r0["bits_per_token_mean"] - r2["bits_per_token_mean"]
-            sign = "−" if delta >= 0 else "+"
-            L.append(
-                f"- R0 control (B4 mimic) = **{r0['bits_per_token_mean']:.3f} ± "
-                f"{r0['bits_per_token_std']:.3f}** bpt; "
-                f"R2 multi-channel multi-task = **{r2['bits_per_token_mean']:.3f} "
-                f"± {r2['bits_per_token_std']:.3f}** bpt. "
-                f"Δ(R0 → R2) = **{sign}{abs(delta):.3f} bits/token**."
+        def _fmt(name):
+            s = summary.get(name)
+            if not s:
+                return None
+            return (s["bits_per_token_mean"], s["bits_per_token_std"])
+        r0 = _fmt("R0_control_B4mimic")
+        r1 = _fmt("R1_multichannel_singletask")
+        r2 = _fmt("R2_multichannel_multitask")
+        if r0:
+            L.append(f"- R0 (single-channel control) = **{r0[0]:.3f} ± {r0[1]:.3f}** bpt")
+        if r1:
+            d = (r0[0] - r1[0]) if r0 else None
+            tail = (
+                f"; Δ(R0 → R1) = **{'−' if d >= 0 else '+'}{abs(d):.3f}**"
+                if d is not None else ""
             )
             L.append(
-                "- Compare Δ to fold-variance σ in the rightmost column. If "
-                "|Δ| < σ, the redesign is within noise; if |Δ| ≥ σ the new "
-                "input channels + multi-task supervision earned their complexity."
+                f"- R1 (multi-channel input, Coda CE only) = "
+                f"**{r1[0]:.3f} ± {r1[1]:.3f}** bpt{tail}"
             )
+        if r2:
+            d = (r0[0] - r2[0]) if r0 else None
+            tail = (
+                f"; Δ(R0 → R2) = **{'−' if d >= 0 else '+'}{abs(d):.3f}**"
+                if d is not None else ""
+            )
+            L.append(
+                f"- R2 (multi-channel input + multi-task heads) = "
+                f"**{r2[0]:.3f} ± {r2[1]:.3f}** bpt{tail}"
+            )
+        L.append(
+            "- Compare each Δ to the fold-variance σ. The R0 → R1 gap "
+            "isolates *whether the extra input channels help*; the R1 → "
+            "R2 gap isolates *whether multi-task supervision adds anything "
+            "on top of multi-channel inputs*."
+        )
     else:
         L.append(
             f"- The unigram majority baseline scores {summary['M0_majority']['bits_per_token_mean']:.3f} "

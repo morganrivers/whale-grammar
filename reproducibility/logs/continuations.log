@@ -1,0 +1,23 @@
+
+=== whale ===
+  488 sequences, 38,840 tokens
+  mean seq length 80 (median 27)
+  picked 3 seeds; training on 485 sequences
+    seed: sharma2025_birth::CETI23-286 (len=151)
+    seed: sharma2025_birth::CETI23-291 (len=80)
+    seed: sharma2025_birth::CETI23-293 (len=567)
+  mean dt feature (log_dt, has_ts) = (-1.754, 0.208)
+  generating 72 tokens after each 8-token seed prefix
+
+=== childes_uk ===
+  405 sequences, 39,318 tokens
+  mean seq length 97 (median 85)
+  picked 3 seeds; training on 402 sequences
+    seed: childes::020218::12::20 (len=80)
+    seed: childes::020219::0::53 (len=80)
+    seed: childes::040002::6::79 (len=101)
+  mean dt feature (log_dt, has_ts) = (-0.647, 0.964)
+  generating 89 tokens after each 8-token seed prefix
+
+wrote /home/dmrivers/Code/whale-grammar/outputs/grammar/continuations.md
+wrote /home/dmrivers/Code/whale-grammar/outputs/grammar/continuations.json

@@ -1,0 +1,16 @@
+
+=== whale (whale_dialogues.csv) ===
+  compound whale vocab V=467 (rhythm × tempo_bin × orn × rubato, attested only)
+  488 sequences, 38,840 tokens, V≈467
+  fold 0: M0_majority: bpt=6.719 acc=0.092 | M1_markov1: bpt=5.719 acc=0.250 | M7_MiniTfmDT: bpt=4.567 acc=0.302  (132.9s)
+  fold 1: M0_majority: bpt=6.503 acc=0.115 | M1_markov1: bpt=5.423 acc=0.301 | M7_MiniTfmDT: bpt=4.404 acc=0.334  (115.1s)
+  fold 2: M0_majority: bpt=6.488 acc=0.084 | M1_markov1: bpt=5.504 acc=0.345 | M7_MiniTfmDT: bpt=4.652 acc=0.342  (109.5s)
+
+=== childes_uk (childes_dialogues.csv) ===
+  405 sequences, 39,318 tokens, V≈1605
+  fold 0: M0_majority: bpt=7.888 acc=0.064 | M1_markov1: bpt=8.167 acc=0.158 | M7_MiniTfmDT: bpt=6.964 acc=0.175  (340.2s)
+  fold 1: M0_majority: bpt=7.798 acc=0.067 | M1_markov1: bpt=8.042 acc=0.162 | M7_MiniTfmDT: bpt=6.812 acc=0.184  (353.9s)
+  fold 2: M0_majority: bpt=7.811 acc=0.063 | M1_markov1: bpt=8.042 acc=0.163 | M7_MiniTfmDT: bpt=6.805 acc=0.182  (341.6s)
+
+wrote /home/dmrivers/Code/whale-grammar/outputs/grammar/childes_vs_whale.json
+wrote /home/dmrivers/Code/whale-grammar/outputs/grammar/childes_vs_whale.md

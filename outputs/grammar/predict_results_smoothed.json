@@ -1,0 +1,181 @@
+{
+  "folds": [
+    {
+      "S1_KN_5gram": {
+        "bits_per_token": 3.181307352180236,
+        "accuracy": 0.502037947997189,
+        "n_params": 47188
+      },
+      "S2_KN_5gram_cache": {
+        "bits_per_token": 3.0204309150464623,
+        "accuracy": 0.51890372452565,
+        "n_params": null,
+        "hyperparams": {
+          "n": 5,
+          "cache_size": 320,
+          "lambda_cache": 0.25
+        }
+      },
+      "S3_PPM_D_o7": {
+        "bits_per_token": 3.455073173811734,
+        "accuracy": 0.4725228390723823,
+        "n_params": 110927
+      },
+      "_meta": {
+        "n_train_seqs": 390,
+        "n_test_seqs": 98,
+        "n_train_tokens": 31725,
+        "n_test_tokens": 7115,
+        "fold": 0,
+        "seconds": 2.5
+      }
+    },
+    {
+      "S1_KN_5gram": {
+        "bits_per_token": 3.7347154018742796,
+        "accuracy": 0.4057017543859649,
+        "n_params": 47695
+      },
+      "S2_KN_5gram_cache": {
+        "bits_per_token": 3.519846176061624,
+        "accuracy": 0.41776315789473684,
+        "n_params": null,
+        "hyperparams": {
+          "n": 5,
+          "cache_size": 320,
+          "lambda_cache": 0.25
+        }
+      },
+      "S3_PPM_D_o7": {
+        "bits_per_token": 4.05835566769636,
+        "accuracy": 0.36293859649122806,
+        "n_params": 112715
+      },
+      "_meta": {
+        "n_train_seqs": 390,
+        "n_test_seqs": 98,
+        "n_train_tokens": 33368,
+        "n_test_tokens": 5472,
+        "fold": 1,
+        "seconds": 2.3
+      }
+    },
+    {
+      "S1_KN_5gram": {
+        "bits_per_token": 3.6617468636086583,
+        "accuracy": 0.3984149855907781,
+        "n_params": 47631
+      },
+      "S2_KN_5gram_cache": {
+        "bits_per_token": 3.4618941318306358,
+        "accuracy": 0.4048991354466859,
+        "n_params": null,
+        "hyperparams": {
+          "n": 5,
+          "cache_size": 320,
+          "lambda_cache": 0.25
+        }
+      },
+      "S3_PPM_D_o7": {
+        "bits_per_token": 3.9753570359870136,
+        "accuracy": 0.368335734870317,
+        "n_params": 112575
+      },
+      "_meta": {
+        "n_train_seqs": 390,
+        "n_test_seqs": 98,
+        "n_train_tokens": 33288,
+        "n_test_tokens": 5552,
+        "fold": 2,
+        "seconds": 2.5
+      }
+    },
+    {
+      "S1_KN_5gram": {
+        "bits_per_token": 3.875527539577864,
+        "accuracy": 0.3565988090292203,
+        "n_params": 45085
+      },
+      "S2_KN_5gram_cache": {
+        "bits_per_token": 3.5427654496137166,
+        "accuracy": 0.3676776069796427,
+        "n_params": null,
+        "hyperparams": {
+          "n": 5,
+          "cache_size": 320,
+          "lambda_cache": 0.25
+        }
+      },
+      "S3_PPM_D_o7": {
+        "bits_per_token": 4.264954579251094,
+        "accuracy": 0.3172690763052209,
+        "n_params": 106699
+      },
+      "_meta": {
+        "n_train_seqs": 391,
+        "n_test_seqs": 97,
+        "n_train_tokens": 31619,
+        "n_test_tokens": 7221,
+        "fold": 3,
+        "seconds": 2.8
+      }
+    },
+    {
+      "S1_KN_5gram": {
+        "bits_per_token": 3.3888901330962766,
+        "accuracy": 0.4821958456973294,
+        "n_params": 40458
+      },
+      "S2_KN_5gram_cache": {
+        "bits_per_token": 3.074302039964155,
+        "accuracy": 0.5009643916913946,
+        "n_params": null,
+        "hyperparams": {
+          "n": 5,
+          "cache_size": 320,
+          "lambda_cache": 0.25
+        }
+      },
+      "S3_PPM_D_o7": {
+        "bits_per_token": 3.6609069245087302,
+        "accuracy": 0.43249258160237386,
+        "n_params": 91126
+      },
+      "_meta": {
+        "n_train_seqs": 391,
+        "n_test_seqs": 97,
+        "n_train_tokens": 25360,
+        "n_test_tokens": 13480,
+        "fold": 4,
+        "seconds": 3.8
+      }
+    }
+  ],
+  "summary": {
+    "S1_KN_5gram": {
+      "bits_per_token_mean": 3.568437458067463,
+      "bits_per_token_std": 0.25010648880415054,
+      "perplexity_mean": 11.863332766384271,
+      "accuracy_mean": 0.42898986854009635,
+      "accuracy_std": 0.05456101748126275,
+      "n_params": 47188
+    },
+    "S2_KN_5gram_cache": {
+      "bits_per_token_mean": 3.323847742503319,
+      "bits_per_token_std": 0.22791752143696248,
+      "perplexity_mean": 10.013314839713967,
+      "accuracy_mean": 0.44204160330762204,
+      "accuracy_std": 0.05810110231207068,
+      "n_params": null
+    },
+    "S3_PPM_D_o7": {
+      "bits_per_token_mean": 3.882929476250986,
+      "bits_per_token_std": 0.2890036023253552,
+      "perplexity_mean": 14.752928696578266,
+      "accuracy_mean": 0.3907117656683044,
+      "accuracy_std": 0.054962810359255425,
+      "n_params": 110927
+    }
+  },
+  "target": "Coda"
+}

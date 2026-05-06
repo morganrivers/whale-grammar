@@ -1,0 +1,137 @@
+{
+  "folds": [
+    {
+      "R0_control_B4mimic": {
+        "accuracy": 0.5304260849952698,
+        "bits_per_token": 2.796191451890582,
+        "n_params": 47588
+      },
+      "R2_multichannel_multitask": {
+        "accuracy": 0.533988893032074,
+        "bits_per_token": 2.893280301834211,
+        "n_params": 50496
+      },
+      "_meta": {
+        "n_train": 31335,
+        "n_test": 7017,
+        "V_coda": 131,
+        "V_whale": 151,
+        "K": 25,
+        "fast_mode": true,
+        "fold": 0,
+        "seconds": 465.4
+      }
+    },
+    {
+      "R0_control_B4mimic": {
+        "accuracy": 0.4309639036655426,
+        "bits_per_token": 3.3410694660938955,
+        "n_params": 47588
+      },
+      "R2_multichannel_multitask": {
+        "accuracy": 0.40788984298706055,
+        "bits_per_token": 3.3905258290719096,
+        "n_params": 50496
+      },
+      "_meta": {
+        "n_train": 32978,
+        "n_test": 5374,
+        "V_coda": 131,
+        "V_whale": 151,
+        "K": 25,
+        "fast_mode": true,
+        "fold": 1,
+        "seconds": 539.9
+      }
+    },
+    {
+      "R0_control_B4mimic": {
+        "accuracy": 0.4231756627559662,
+        "bits_per_token": 3.333293786483086,
+        "n_params": 47588
+      },
+      "R2_multichannel_multitask": {
+        "accuracy": 0.41529151797294617,
+        "bits_per_token": 3.349263407511603,
+        "n_params": 50496
+      },
+      "_meta": {
+        "n_train": 32898,
+        "n_test": 5454,
+        "V_coda": 131,
+        "V_whale": 151,
+        "K": 25,
+        "fast_mode": true,
+        "fold": 2,
+        "seconds": 523.6
+      }
+    },
+    {
+      "R0_control_B4mimic": {
+        "accuracy": 0.39261651039123535,
+        "bits_per_token": 3.4321294642115285,
+        "n_params": 47588
+      },
+      "R2_multichannel_multitask": {
+        "accuracy": 0.3957046568393707,
+        "bits_per_token": 3.4301922516322096,
+        "n_params": 50496
+      },
+      "_meta": {
+        "n_train": 31228,
+        "n_test": 7124,
+        "V_coda": 131,
+        "V_whale": 151,
+        "K": 25,
+        "fast_mode": true,
+        "fold": 3,
+        "seconds": 538.3
+      }
+    },
+    {
+      "R0_control_B4mimic": {
+        "accuracy": 0.5090786814689636,
+        "bits_per_token": 3.1102295365916093,
+        "n_params": 47588
+      },
+      "R2_multichannel_multitask": {
+        "accuracy": 0.44877830147743225,
+        "bits_per_token": 3.5335486653212316,
+        "n_params": 50496
+      },
+      "_meta": {
+        "n_train": 24969,
+        "n_test": 13383,
+        "V_coda": 131,
+        "V_whale": 151,
+        "K": 25,
+        "fast_mode": true,
+        "fold": 4,
+        "seconds": 461.2
+      }
+    }
+  ],
+  "summary": {
+    "R0_control_B4mimic": {
+      "bits_per_token_mean": 3.2025827410541403,
+      "bits_per_token_std": 0.22918928544073613,
+      "perplexity_mean": 9.206052953769191,
+      "accuracy_mean": 0.45725216865539553,
+      "accuracy_std": 0.05304801393579541,
+      "n_params": 47588
+    },
+    "R2_multichannel_multitask": {
+      "bits_per_token_mean": 3.3193620910742325,
+      "bits_per_token_std": 0.22165886877336546,
+      "perplexity_mean": 9.982229624958117,
+      "accuracy_mean": 0.4403306424617767,
+      "accuracy_std": 0.050028137405325135,
+      "n_params": 50496
+    }
+  },
+  "target": "Coda",
+  "V_coda": 131,
+  "V_whale": 151,
+  "K": 25,
+  "fast_mode": true
+}

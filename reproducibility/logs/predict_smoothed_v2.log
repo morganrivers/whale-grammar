@@ -1,0 +1,10 @@
+loading sequences...
+  488 sequences, 38,840 tokens
+fold 0: S1_KN_5gram: bpt=3.181 acc=0.502  S2_KN_5gram_cache: bpt=3.020 acc=0.519  S3_PPM_D_o7: bpt=3.455 acc=0.473  (2.5s)
+fold 1: S1_KN_5gram: bpt=3.735 acc=0.406  S2_KN_5gram_cache: bpt=3.520 acc=0.418  S3_PPM_D_o7: bpt=4.058 acc=0.363  (2.3s)
+fold 2: S1_KN_5gram: bpt=3.662 acc=0.398  S2_KN_5gram_cache: bpt=3.462 acc=0.405  S3_PPM_D_o7: bpt=3.975 acc=0.368  (2.5s)
+fold 3: S1_KN_5gram: bpt=3.876 acc=0.357  S2_KN_5gram_cache: bpt=3.543 acc=0.368  S3_PPM_D_o7: bpt=4.265 acc=0.317  (2.8s)
+fold 4: S1_KN_5gram: bpt=3.389 acc=0.482  S2_KN_5gram_cache: bpt=3.074 acc=0.501  S3_PPM_D_o7: bpt=3.661 acc=0.432  (3.8s)
+
+wrote /home/dmrivers/Code/whale-grammar/outputs/grammar/predict_results_smoothed.json
+wrote /home/dmrivers/Code/whale-grammar/outputs/grammar/predict_results_smoothed.md

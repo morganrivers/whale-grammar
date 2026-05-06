@@ -23,3 +23,7 @@ data/diagnostics/**/*.png
 
 # Claude Code session state
 .claude/
+
+# Raw CHILDES corpus (large, downloaded separately)
+Eng-UK/
+__MACOSX/

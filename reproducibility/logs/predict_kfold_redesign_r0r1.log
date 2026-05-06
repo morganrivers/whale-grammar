@@ -1,0 +1,9 @@
+redesign mode: V_coda=131, V_whale=151, K=25, fast_mode=True
+fold 0: R0_control_B4mimic: bpt=2.803 acc=0.539  R1_multichannel_singletask: bpt=2.833 acc=0.537  (412.2s)
+fold 1: R0_control_B4mimic: bpt=3.341 acc=0.431  R1_multichannel_singletask: bpt=3.363 acc=0.409  (451.4s)
+fold 2: R0_control_B4mimic: bpt=3.362 acc=0.417  R1_multichannel_singletask: bpt=3.358 acc=0.417  (499.6s)
+fold 3: R0_control_B4mimic: bpt=3.465 acc=0.389  R1_multichannel_singletask: bpt=3.477 acc=0.376  (543.2s)
+fold 4: R0_control_B4mimic: bpt=3.105 acc=0.514  R1_multichannel_singletask: bpt=3.189 acc=0.499  (385.3s)
+
+wrote /home/dmrivers/Code/whale-grammar/outputs/grammar/predict_results_redesign.json
+wrote /home/dmrivers/Code/whale-grammar/outputs/grammar/predict_results_redesign.md

@@ -1,0 +1,12 @@
+{
+  "source": "whale",
+  "V": 131,
+  "n_corpus_tokens": 38248,
+  "n_cooc_windows": 4000,
+  "kl_summary": {
+    "n_eligible": 43,
+    "mean": 3.217981573406718,
+    "median": 3.219342632557656,
+    "max": 6.021879208486647
+  }
+}

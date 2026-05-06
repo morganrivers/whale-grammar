@@ -1,0 +1,215 @@
+{
+  "arch": {
+    "d": 64,
+    "n_layers": 2,
+    "n_heads": 4
+  },
+  "runs": [
+    {
+      "source": "whale",
+      "csv": "/home/dmrivers/Code/whale-grammar/data/classified/whale_dialogues.csv",
+      "n_sequences": 488,
+      "n_tokens": 38840,
+      "V": 467,
+      "k": 8,
+      "n_folds": 3,
+      "folds": [
+        {
+          "M0_majority": {
+            "accuracy": 0.09205020920502092,
+            "bits_per_token": 6.719172207073845
+          },
+          "M1_markov1": {
+            "accuracy": 0.2499049068086725,
+            "bits_per_token": 5.7187260175519254
+          },
+          "M7_MiniTfmDT": {
+            "accuracy": 0.3015405237674713,
+            "bits_per_token": 4.567030594504341,
+            "n_params": 160915
+          },
+          "_meta": {
+            "n_train": 27836,
+            "n_test": 10516,
+            "V": 467,
+            "fold": 0,
+            "seconds": 132.9
+          }
+        },
+        {
+          "M0_majority": {
+            "accuracy": 0.11509878557186877,
+            "bits_per_token": 6.502701233831361
+          },
+          "M1_markov1": {
+            "accuracy": 0.3010694217872032,
+            "bits_per_token": 5.423005068838524
+          },
+          "M7_MiniTfmDT": {
+            "accuracy": 0.3336958587169647,
+            "bits_per_token": 4.4044031119178655,
+            "n_params": 160915
+          },
+          "_meta": {
+            "n_train": 27318,
+            "n_test": 11034,
+            "V": 467,
+            "fold": 1,
+            "seconds": 115.1
+          }
+        },
+        {
+          "M0_majority": {
+            "accuracy": 0.08350196405189858,
+            "bits_per_token": 6.4879577695172435
+          },
+          "M1_markov1": {
+            "accuracy": 0.34489941673610286,
+            "bits_per_token": 5.503991224384772
+          },
+          "M7_MiniTfmDT": {
+            "accuracy": 0.3423402011394501,
+            "bits_per_token": 4.652044026582939,
+            "n_params": 160915
+          },
+          "_meta": {
+            "n_train": 21550,
+            "n_test": 16802,
+            "V": 467,
+            "fold": 2,
+            "seconds": 109.5
+          }
+        }
+      ],
+      "summary": {
+        "M0_majority": {
+          "bits_per_token_mean": 6.569943736807484,
+          "bits_per_token_std": 0.10569198862267731,
+          "perplexity_mean": 95.00580334772846,
+          "accuracy_mean": 0.09688365294292943,
+          "accuracy_std": 0.013344447442459804,
+          "n_params": null
+        },
+        "M1_markov1": {
+          "bits_per_token_mean": 5.548574103591741,
+          "bits_per_token_std": 0.12477565124594861,
+          "perplexity_mean": 46.80445992999532,
+          "accuracy_mean": 0.29862458177732615,
+          "accuracy_std": 0.03881985884478534,
+          "n_params": null
+        },
+        "M7_MiniTfmDT": {
+          "bits_per_token_mean": 4.541159244335049,
+          "bits_per_token_std": 0.10274077646752568,
+          "perplexity_mean": 23.282260686719532,
+          "accuracy_mean": 0.32585886120796204,
+          "accuracy_std": 0.01755405586337005,
+          "n_params": 160915
+        }
+      }
+    },
+    {
+      "source": "childes_uk",
+      "csv": "/home/dmrivers/Code/whale-grammar/data/classified/childes_dialogues.csv",
+      "n_sequences": 405,
+      "n_tokens": 39318,
+      "V": 1602,
+      "k": 8,
+      "n_folds": 3,
+      "folds": [
+        {
+          "M0_majority": {
+            "accuracy": 0.06429312132734186,
+            "bits_per_token": 7.887549483046481
+          },
+          "M1_markov1": {
+            "accuracy": 0.15776011061182163,
+            "bits_per_token": 8.167487140683543
+          },
+          "M7_MiniTfmDT": {
+            "accuracy": 0.17545799911022186,
+            "bits_per_token": 6.963865776357967,
+            "n_params": 307330
+          },
+          "_meta": {
+            "n_train": 24448,
+            "n_test": 14465,
+            "V": 1602,
+            "fold": 0,
+            "seconds": 340.2
+          }
+        },
+        {
+          "M0_majority": {
+            "accuracy": 0.06669387755102041,
+            "bits_per_token": 7.797543490776156
+          },
+          "M1_markov1": {
+            "accuracy": 0.16228571428571428,
+            "bits_per_token": 8.0420012079412
+          },
+          "M7_MiniTfmDT": {
+            "accuracy": 0.18367347121238708,
+            "bits_per_token": 6.811923231904297,
+            "n_params": 307330
+          },
+          "_meta": {
+            "n_train": 26663,
+            "n_test": 12250,
+            "V": 1602,
+            "fold": 1,
+            "seconds": 353.9
+          }
+        },
+        {
+          "M0_majority": {
+            "accuracy": 0.06345302508607968,
+            "bits_per_token": 7.810602265397785
+          },
+          "M1_markov1": {
+            "accuracy": 0.16256763403836694,
+            "bits_per_token": 8.041874100360726
+          },
+          "M7_MiniTfmDT": {
+            "accuracy": 0.18183308839797974,
+            "bits_per_token": 6.805019848298664,
+            "n_params": 307330
+          },
+          "_meta": {
+            "n_train": 26715,
+            "n_test": 12198,
+            "V": 1602,
+            "fold": 2,
+            "seconds": 341.6
+          }
+        }
+      ],
+      "summary": {
+        "M0_majority": {
+          "bits_per_token_mean": 7.831898413073475,
+          "bits_per_token_std": 0.03971073818259591,
+          "perplexity_mean": 227.84334362897795,
+          "accuracy_mean": 0.06481334132148064,
+          "accuracy_std": 0.0013732571515935924,
+          "n_params": null
+        },
+        "M1_markov1": {
+          "bits_per_token_mean": 8.083787482995156,
+          "bits_per_token_std": 0.05918461828295747,
+          "perplexity_mean": 271.30794443658573,
+          "accuracy_mean": 0.16087115297863427,
+          "accuracy_std": 0.0022028478753364383,
+          "n_params": null
+        },
+        "M7_MiniTfmDT": {
+          "bits_per_token_mean": 6.860269618853643,
+          "bits_per_token_std": 0.07330773976212548,
+          "perplexity_mean": 116.1841629927832,
+          "accuracy_mean": 0.18032151957352957,
+          "accuracy_std": 0.0035201444760739604,
+          "n_params": 307330
+        }
+      }
+    }
+  ]
+}
