@@ -73,6 +73,8 @@ WHALE_CSV = ROOT / "data" / "classified" / "whale_dialogues.csv"
 WHALE_RHYTHM_INDEX = ROOT / "data" / "classified" / "rhythm_class_index.csv"
 CHILDES_CSV = ROOT / "data" / "classified" / "childes_dialogues.csv"
 CHILDES_INDEX = ROOT / "data" / "classified" / "childes_word_index.csv"
+MULTILANG_CSV = ROOT / "data" / "classified" / "multilang_dialogues.csv"
+MULTILANG_INDEX = ROOT / "data" / "classified" / "multilang_word_index.csv"
 
 CKPT_DIR = ROOT / "outputs" / "grammar" / "checkpoints"
 
@@ -122,7 +124,19 @@ def _load_childes_vocab(d_vocab: int) -> list[str]:
     return vocab
 
 
-def load_corpus(source: str) -> Corpus:
+def _load_index_vocab(index_path: Path, d_vocab: int) -> list[str]:
+    if not index_path.exists():
+        return [str(i) for i in range(d_vocab)]
+    idx = pd.read_csv(index_path)
+    vocab = ["<missing>"] * d_vocab
+    for _, row in idx.iterrows():
+        wid = int(row["word_id"])
+        if 0 <= wid < d_vocab:
+            vocab[wid] = str(row["word"])
+    return vocab
+
+
+def load_corpus(source: str, n_ctx: int = N_CTX) -> Corpus:
     """Load the per-source dialogues CSV and bin its TimeDelta channel.
 
     For whale we *replace* the rhythm-only `Coda` column with the
@@ -138,6 +152,8 @@ def load_corpus(source: str) -> Corpus:
         df, whale_decoder = load_compound_whale(WHALE_CSV)
     elif source == "childes":
         df = pd.read_csv(CHILDES_CSV)
+    elif source == "multilang":
+        df = pd.read_csv(MULTILANG_CSV)
     else:
         raise ValueError(f"unknown source: {source}")
 
@@ -145,12 +161,27 @@ def load_corpus(source: str) -> Corpus:
     convs: list[Conversation] = []
     for sid, g in df.groupby("sequenceId", sort=False):
         toks = g["Coda"].astype(int).tolist()
-        if len(toks) < N_CTX + 1:
+        if len(toks) < n_ctx + 1:
             continue
         times = g["TimeDelta"].astype(float).tolist()
         has_ts = g["has_timestamps"].astype(int).tolist()
         speakers = g["Whale"].astype(str).tolist()
-        buckets = [dt_to_bucket(source, dt, hts) for dt, hts in zip(times, has_ts)]
+        # Flag a speaker change at position i when speakers[i] != speakers[i-1]
+        # AND both endpoints have timestamps (Hersh-tier rows are all UNK and
+        # masked, so they correctly produce no switches). The whale scheme's
+        # `switched` bucket overrides the timing bucket; CHILDES + multilang
+        # ignore the flag.
+        switched_flags = [False]
+        for i in range(1, len(speakers)):
+            switched_flags.append(
+                speakers[i] != speakers[i - 1]
+                and has_ts[i] == 1
+                and has_ts[i - 1] == 1
+            )
+        buckets = [
+            dt_to_bucket(source, dt, hts, switched=sw)
+            for dt, hts, sw in zip(times, has_ts, switched_flags)
+        ]
         convs.append(Conversation(
             seq_id=str(sid),
             tokens=toks,
@@ -162,6 +193,8 @@ def load_corpus(source: str) -> Corpus:
     d_vocab = int(df["Coda"].max()) + 1
     if source == "whale":
         vocab = _whale_vocab_from_decoder(whale_decoder or {}, d_vocab)
+    elif source == "multilang":
+        vocab = _load_index_vocab(MULTILANG_INDEX, d_vocab)
     else:
         vocab = _load_childes_vocab(d_vocab)
     scheme = scheme_for(source)
@@ -374,7 +407,8 @@ def train(
 
 def main(argv: list[str] | None = None) -> None:
     p = argparse.ArgumentParser()
-    p.add_argument("--source", choices=["whale", "childes"], required=True)
+    p.add_argument("--source", choices=["whale", "childes", "multilang"],
+                   required=True)
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--n-seeds", type=int, default=3)
     p.add_argument("--val-frac", type=float, default=0.1)
@@ -383,6 +417,8 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--bs", type=int, default=128)
     p.add_argument("--dt-weight", type=float, default=0.5,
                    help="Loss weight on the DT head; coda head is fixed at 1.0.")
+    p.add_argument("--n-ctx", type=int, default=N_CTX,
+                   help=f"Context length K (window is K+1). Default {N_CTX}.")
     p.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     args = p.parse_args(argv)
 
@@ -390,19 +426,52 @@ def main(argv: list[str] | None = None) -> None:
     torch.manual_seed(args.seed)
     np.random.seed(args.seed)
 
-    corpus = load_corpus(args.source)
+    corpus = load_corpus(args.source, n_ctx=args.n_ctx)
     print(f"loaded {args.source}: {len(corpus.conversations)} conversations, "
           f"V={len(corpus.vocab)}, dt scheme={corpus.dt_scheme_name} "
-          f"({corpus.n_dt_buckets} buckets)")
+          f"({corpus.n_dt_buckets} buckets), K={args.n_ctx}")
 
     n_total = len(corpus.conversations)
     if n_total < args.n_seeds + 5:
         raise SystemExit(f"too few conversations ({n_total}) to hold out seeds")
 
-    perm = list(range(n_total))
-    rng.shuffle(perm)
-    seed_idx = perm[: args.n_seeds]
-    rest_idx = perm[args.n_seeds :]
+    if args.source == "multilang":
+        # For demo continuations to be legible we pick the held-out seeds
+        # from the clean tiers — one from `zh_birth` and one from the
+        # unmasked half of `zh_dswp` — so the speaker channel and DT
+        # channel are both present in the prefix that feeds the
+        # continuation generator. The Hersh-equiv majority (UNK +
+        # has_timestamps=0) still trains the model; we just don't pick
+        # display seeds from there.
+        birth_pool = [
+            i for i, c in enumerate(corpus.conversations)
+            if c.seq_id.startswith("zh_birth::")
+            and not any("::UNK" in s for s in c.speakers)
+        ]
+        dswp_clean_pool = [
+            i for i, c in enumerate(corpus.conversations)
+            if c.seq_id.startswith("zh_dswp::")
+            and not any("::UNK" in s for s in c.speakers)
+        ]
+        rng.shuffle(birth_pool)
+        rng.shuffle(dswp_clean_pool)
+        seed_idx: list[int] = []
+        if birth_pool:
+            seed_idx.append(birth_pool[0])
+        if dswp_clean_pool:
+            seed_idx.append(dswp_clean_pool[0])
+        if not seed_idx:
+            raise SystemExit("no clean (zh_birth / zh_dswp-clean) seeds available")
+        held = set(seed_idx)
+        rest_idx = [i for i in range(n_total) if i not in held]
+        rng.shuffle(rest_idx)
+        print(f"held-out seeds (clean tiers only): "
+              f"{[corpus.conversations[i].seq_id for i in seed_idx]}")
+    else:
+        perm = list(range(n_total))
+        rng.shuffle(perm)
+        seed_idx = perm[: args.n_seeds]
+        rest_idx = perm[args.n_seeds :]
     n_val = max(1, int(args.val_frac * len(rest_idx)))
     val_idx = rest_idx[:n_val]
     train_idx = rest_idx[n_val:]
@@ -410,14 +479,14 @@ def main(argv: list[str] | None = None) -> None:
     train_convs = [corpus.conversations[i] for i in train_idx]
     val_convs = [corpus.conversations[i] for i in val_idx]
 
-    train_tok, train_dt = make_windows(train_convs, N_CTX)
-    val_tok, val_dt = make_windows(val_convs, N_CTX)
+    train_tok, train_dt = make_windows(train_convs, args.n_ctx)
+    val_tok, val_dt = make_windows(val_convs, args.n_ctx)
     print(f"train windows: {tuple(train_tok.shape)};  val windows: {tuple(val_tok.shape)}")
 
     if train_tok.size(0) == 0 or val_tok.size(0) == 0:
         raise SystemExit("not enough windows after split")
 
-    model = make_m7_hooked(d_vocab=len(corpus.vocab))
+    model = make_m7_hooked(d_vocab=len(corpus.vocab), n_ctx=args.n_ctx)
     dt_head = nn.Linear(model.cfg.d_model, corpus.n_dt_buckets)
     n_params = sum(p.numel() for p in model.parameters()) + sum(p.numel() for p in dt_head.parameters())
     print(f"model + dt_head params: {n_params:,}")
@@ -425,7 +494,7 @@ def main(argv: list[str] | None = None) -> None:
     log_lines: list[str] = [
         f"source: {args.source}",
         f"seed: {args.seed}",
-        f"V: {len(corpus.vocab)}; n_dt_buckets: {corpus.n_dt_buckets}; K: {N_CTX}",
+        f"V: {len(corpus.vocab)}; n_dt_buckets: {corpus.n_dt_buckets}; K: {args.n_ctx}",
         f"n_params: {n_params:,}",
         f"dt_weight: {args.dt_weight}",
         f"n_train_windows: {train_tok.size(0)}; n_val_windows: {val_tok.size(0)}",
@@ -456,7 +525,7 @@ def main(argv: list[str] | None = None) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     torch.save(model.state_dict(), out_dir / "model.pt")
     torch.save(dt_head.state_dict(), out_dir / "dt_head.pt")
-    cfg = make_m7_config(d_vocab=len(corpus.vocab))
+    cfg = make_m7_config(d_vocab=len(corpus.vocab), n_ctx=args.n_ctx)
     cfg_dict = {k: v for k, v in cfg.__dict__.items()
                 if isinstance(v, (int, float, str, bool, type(None), list, tuple))}
     cfg_dict["source"] = args.source

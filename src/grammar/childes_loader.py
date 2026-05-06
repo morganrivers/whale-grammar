@@ -37,6 +37,7 @@ from __future__ import annotations
 
 import argparse
 import re
+from collections import Counter
 from pathlib import Path
 from typing import Iterator
 
@@ -278,6 +279,14 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--seed", type=int, default=SEED)
     p.add_argument("--min-tokens-per-conv", type=int, default=20,
                    help="Drop conversations with fewer than this many lemmas.")
+    p.add_argument("--vocab-cap", type=int, default=None,
+                   help="If set, keep top (cap-1) lemmas by frequency and "
+                        "map the rest to <unk> (id = cap-1). Default: no cap.")
+    p.add_argument("--mirror-hersh-frac", type=float, default=0.0,
+                   help="Fraction of tokens (0..1) to write as Hersh-style "
+                        "NA: Whale=childes::UNK, TimeDelta=-1.0, "
+                        "has_timestamps=0. Sequence-level selection until "
+                        "cumulative tokens >= frac × total. Default 0.")
     p.add_argument("--out-csv", type=Path, default=OUT_CSV)
     p.add_argument("--out-index", type=Path, default=OUT_INDEX)
     p.add_argument("--root", type=Path, default=CHILDES_ROOT)
@@ -323,16 +332,31 @@ def main(argv: list[str] | None = None) -> None:
     all_words: list[str] = []
     for c in chosen_convs:
         all_words.extend(t[1] for t in c["tokens"])
-    vocab = sorted(set(all_words))
-    word2id = {w: i for i, w in enumerate(vocab)}
-    print(f"vocabulary size: {len(vocab):,} unique lemmas on "
-          f"{len(all_words):,} tokens (TTR {len(vocab)/len(all_words):.4f})")
+    unique_words = sorted(set(all_words))
+    if args.vocab_cap is not None and len(unique_words) >= args.vocab_cap:
+        # Reserve the last id for <unk>; keep top (cap-1) by frequency.
+        counts = Counter(all_words)
+        kept = sorted(w for w, _ in counts.most_common(args.vocab_cap - 1))
+        vocab = kept + ["<unk>"]
+        word2id: dict[str, int] = {w: i for i, w in enumerate(kept)}
+        unk_id = len(kept)
+        n_unk_tokens = sum(1 for w in all_words if w not in word2id)
+        print(f"vocab cap {args.vocab_cap}: kept {len(kept):,} lemmas + <unk>; "
+              f"{n_unk_tokens:,}/{len(all_words):,} tokens "
+              f"({n_unk_tokens / len(all_words):.1%}) mapped to <unk>; "
+              f"dropped {len(unique_words) - len(kept):,} long-tail lemmas")
+    else:
+        vocab = unique_words
+        word2id = {w: i for i, w in enumerate(vocab)}
+        unk_id = None
+        print(f"vocabulary size: {len(vocab):,} unique lemmas on "
+              f"{len(all_words):,} tokens (TTR {len(vocab)/len(all_words):.4f})")
 
     # Build whale_dialogues-shaped CSV. Each .cha file is split into
     # ~CHUNK_TOKENS-long sub-sequences (breaking at the next speaker
     # switch after the soft target) so CV granularity matches the whale
     # corpus's ~80 tokens/sequence.
-    rows = []
+    all_chunks: list[tuple[str, list[tuple[str, str, float]]]] = []
     for ci, c in enumerate(chosen_convs):
         stem = Path(c["path"]).stem
         toks = c["tokens"]
@@ -353,14 +377,52 @@ def main(argv: list[str] | None = None) -> None:
             chunks.append(cur)
         for chunk_idx, chunk in enumerate(chunks):
             seq_id = f"childes::{stem}::{ci}::{chunk_idx}"
-            # First token of each chunk: keep original DT (carries the
-            # speaker-switch / punctuation gap from the previous chunk).
-            for pos, (speaker, lemma, dt) in enumerate(chunk):
+            all_chunks.append((seq_id, chunk))
+
+    # Hersh-mirror: pick sequences uniformly at random until cumulative
+    # tokens >= mirror_hersh_frac × total. Selection happens at
+    # sequence-level (not row-level) so the missingness pattern matches
+    # whale, where Hersh missingness is a property of whole recordings.
+    masked_ids: set[str] = set()
+    if args.mirror_hersh_frac > 0:
+        total_tokens_chunked = sum(len(c) for _, c in all_chunks)
+        target = args.mirror_hersh_frac * total_tokens_chunked
+        rng_mask = np.random.default_rng(args.seed + 1)
+        order = rng_mask.permutation(len(all_chunks))
+        cum = 0
+        for i in order:
+            if cum >= target:
+                break
+            masked_ids.add(all_chunks[i][0])
+            cum += len(all_chunks[i][1])
+        print(f"Hersh mirror: {len(masked_ids):,}/{len(all_chunks):,} "
+              f"sequences masked, {cum:,}/{total_tokens_chunked:,} tokens "
+              f"({cum / total_tokens_chunked:.1%}) — Whale=childes::UNK, "
+              f"TimeDelta=-1.0, has_timestamps=0")
+
+    rows = []
+    for seq_id, chunk in all_chunks:
+        is_masked = seq_id in masked_ids
+        for pos, (speaker, lemma, dt) in enumerate(chunk):
+            tok_id = word2id.get(lemma, unk_id)
+            if is_masked:
+                rows.append(dict(
+                    sequenceId=seq_id,
+                    itemPosition=pos,
+                    Whale="childes::UNK",
+                    Coda=tok_id,
+                    Ornamentation=0,
+                    Synchrony=0,
+                    Duration=0.0,
+                    TimeDelta=-1.0,
+                    has_timestamps=0,
+                ))
+            else:
                 rows.append(dict(
                     sequenceId=seq_id,
                     itemPosition=pos,
                     Whale=f"childes::{speaker}",
-                    Coda=word2id[lemma],
+                    Coda=tok_id,
                     Ornamentation=0,
                     Synchrony=0,
                     Duration=0.0,

@@ -1,0 +1,30 @@
+loaded whale: 292 conversations, V=467, dt scheme=whale (6 buckets), K=16
+train windows: (30876, 17);  val windows: (1732, 17)
+model + dt_head params: 161,753
+Moving model to device:  cpu
+epoch   1  train coda=4.180 dt=0.975  | val coda=4.329 dt=0.523
+epoch   2  train coda=3.407 dt=0.751  | val coda=4.210 dt=0.478
+epoch   3  train coda=3.284 dt=0.719  | val coda=4.173 dt=0.458
+epoch   4  train coda=3.221 dt=0.706  | val coda=4.138 dt=0.456
+epoch   5  train coda=3.181 dt=0.700  | val coda=4.131 dt=0.445
+epoch   6  train coda=3.153 dt=0.696  | val coda=4.130 dt=0.447
+epoch   7  train coda=3.132 dt=0.693  | val coda=4.123 dt=0.449
+epoch   8  train coda=3.116 dt=0.691  | val coda=4.127 dt=0.461
+epoch   9  train coda=3.105 dt=0.689  | val coda=4.123 dt=0.449
+epoch  10  train coda=3.096 dt=0.688  | val coda=4.141 dt=0.456
+epoch  11  train coda=3.085 dt=0.687  | val coda=4.129 dt=0.443
+epoch  12  train coda=3.079 dt=0.688  | val coda=4.149 dt=0.453
+epoch  13  train coda=3.074 dt=0.686  | val coda=4.121 dt=0.453
+epoch  14  train coda=3.069 dt=0.686  | val coda=4.128 dt=0.447
+epoch  15  train coda=3.066 dt=0.686  | val coda=4.151 dt=0.441
+epoch  16  train coda=3.062 dt=0.685  | val coda=4.146 dt=0.449
+epoch  17  train coda=3.058 dt=0.685  | val coda=4.151 dt=0.452
+epoch  18  train coda=3.055 dt=0.685  | val coda=4.142 dt=0.459
+early stop at epoch 18
+Moving model to device:  cpu
+val final-position coda bpt: 6.0321  (M7 benchmark on whale: 3.186)
+val final-position coda acc: 0.2050
+val final-position dt   bpt: 0.6637
+val final-position dt   acc: 0.8949
+
+wrote checkpoint to /home/dmrivers/Code/whale-grammar/outputs/grammar/checkpoints/whale/

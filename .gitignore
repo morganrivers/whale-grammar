@@ -26,4 +26,11 @@ data/diagnostics/**/*.png
 
 # Raw CHILDES corpus (large, downloaded separately)
 Eng-UK/
+Mandarin/
+Japanese/
 __MACOSX/
+MiiPro.zip
+Traditional.zip
+
+# Regenerable per-language conv pool cache
+outputs/grammar/multilang_convs.pkl

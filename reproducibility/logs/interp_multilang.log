@@ -1,0 +1,16 @@
+
+=== WHALE ===
+eval spans (K+1=9): torch.Size([335, 9])
+wrote head_summary.png
+wrote logit_lens.png  per-layer top-1 acc: [0.0, 0.0656716451048851, 0.15223880112171173]
+wrote token_embeddings.png
+wrote attention_seed*.html  (n=3)
+wrote continuations.md
+
+=== MULTILANG ===
+eval spans (K+1=9): torch.Size([172, 9])
+wrote head_summary.png
+wrote logit_lens.png  per-layer top-1 acc: [0.0058139534667134285, 0.01744186133146286, 0.04651162773370743]
+wrote token_embeddings.png
+wrote attention_seed*.html  (n=2)
+wrote continuations.md

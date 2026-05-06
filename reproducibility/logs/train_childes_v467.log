@@ -1,0 +1,24 @@
+loaded childes: 405 conversations, V=467, dt scheme=childes (3 buckets)
+train windows: (31425, 9);  val windows: (4392, 9)
+model + dt_head params: 161,046
+Moving model to device:  cpu
+epoch   1  train coda=4.990 dt=0.791  | val coda=4.749 dt=0.703
+epoch   2  train coda=4.633 dt=0.716  | val coda=4.688 dt=0.696
+epoch   3  train coda=4.549 dt=0.709  | val coda=4.657 dt=0.694
+epoch   4  train coda=4.495 dt=0.706  | val coda=4.646 dt=0.690
+epoch   5  train coda=4.458 dt=0.705  | val coda=4.634 dt=0.691
+epoch   6  train coda=4.429 dt=0.704  | val coda=4.634 dt=0.690
+epoch   7  train coda=4.407 dt=0.703  | val coda=4.627 dt=0.687
+epoch   8  train coda=4.388 dt=0.703  | val coda=4.627 dt=0.688
+epoch   9  train coda=4.373 dt=0.702  | val coda=4.629 dt=0.687
+epoch  10  train coda=4.360 dt=0.702  | val coda=4.636 dt=0.689
+epoch  11  train coda=4.349 dt=0.702  | val coda=4.629 dt=0.688
+epoch  12  train coda=4.340 dt=0.702  | val coda=4.633 dt=0.686
+early stop at epoch 12
+Moving model to device:  cpu
+val final-position coda bpt: 7.0792  (M7 benchmark on whale: 3.186)
+val final-position coda acc: 0.0779
+val final-position dt   bpt: 1.0644
+val final-position dt   acc: 0.7564
+
+wrote checkpoint to /home/dmrivers/Code/whale-grammar/outputs/grammar/checkpoints/childes/

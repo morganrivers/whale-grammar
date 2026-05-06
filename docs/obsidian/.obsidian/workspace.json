@@ -13,28 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Welcome.md",
+                "file": "transformer/childes-comparison.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Welcome"
-            }
-          }
-        ]
-      },
-      {
-        "id": "4a675727b4743277",
-        "type": "tabs",
-        "children": [
-          {
-            "id": "2430d4d7f231ca7e",
-            "type": "leaf",
-            "state": {
-              "type": "graph",
-              "state": {},
-              "icon": "lucide-git-fork",
-              "title": "Graph view"
+              "title": "childes-comparison"
             }
           }
         ]
@@ -201,6 +185,40 @@
   },
   "active": "ae258bc34e754ad0",
   "lastOpenFiles": [
-    "Welcome.md"
+    "transformer/multilang-corpus-plan.md.tmp.11676.1778065593700",
+    "transformer/multilang-corpus-plan.md.tmp.11676.1778065563610",
+    "transformer/multilang-corpus-plan.md.tmp.11676.1778065552529",
+    "transformer/multilang-corpus-plan.md.tmp.11676.1778065547425",
+    "transformer/childes-comparison.md.tmp.11676.1778065273443",
+    "overview/corpora.md.tmp.11676.1778065257486",
+    "transformer/transformer.md.tmp.11676.1778065239579",
+    "transformer/transformer.md.tmp.11676.1778065216508",
+    "README.md.tmp.11676.1778065201320",
+    "README.md.tmp.11676.1778065188908",
+    "overview/whale-clans-pacific-vs-caribbean.md",
+    "overview/whale-clans-pacific-vs-caribbean.md.tmp.11676.1778065159747",
+    "transformer/multilang-corpus-plan.md",
+    "transformer/cross-language-units.md",
+    "transformer/hersh-mirror.md",
+    "transformer/vocab-cap-experiment.md",
+    "README.md",
+    "overview/overview.md",
+    "overview/reproduce.md",
+    "interp/continuations.md",
+    "interp/interp.md",
+    "transformer/childes-comparison.md",
+    "transformer/smoothed-baselines.md",
+    "transformer/schema-redesign.md",
+    "transformer/results.md",
+    "transformer/corpus-design.md",
+    "classifier/papers.md",
+    "classifier/locked-parameters.md",
+    "classifier/pacific-extension.md",
+    "classifier/gero-2016-replication.md",
+    "classifier/classifier.md",
+    "overview/glossary.md",
+    "overview/corpora.md",
+    "Welcome.md",
+    "transformer/transformer.md"
   ]
 }

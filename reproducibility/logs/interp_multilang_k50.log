@@ -1,0 +1,8 @@
+
+=== MULTILANG ===
+eval spans (K+1=51): torch.Size([74, 51])
+wrote head_summary.png
+wrote logit_lens.png  per-layer top-1 acc: [0.0, 0.027027027681469917, 0.054054055362939835]
+wrote token_embeddings.png
+wrote attention_seed*.html  (n=2)
+wrote continuations.md

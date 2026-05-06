@@ -48,7 +48,7 @@
   "d_vocab_out": 467,
   "parallel_attn_mlp": false,
   "rotary_dim": null,
-  "n_params": 161241,
+  "n_params": 161306,
   "use_hook_tokens": false,
   "tokenizer_prepends_bos": null,
   "post_embedding_ln": false,
@@ -79,10 +79,10 @@
   "norm_topk_prob": false,
   "source": "whale",
   "dt_scheme_name": "whale",
-  "n_dt_buckets": 6,
+  "n_dt_buckets": 7,
   "dt_weight": 0.5,
-  "val_coda_bpt": 5.008613953227571,
-  "val_coda_acc": 0.2982300884955752,
-  "val_dt_bpt": 0.33736538500796337,
-  "val_dt_acc": 0.9641592920353982
+  "val_coda_bpt": 4.990178250747565,
+  "val_coda_acc": 0.29557522123893804,
+  "val_dt_bpt": 0.330527316456005,
+  "val_dt_acc": 0.9577433628318585
 }

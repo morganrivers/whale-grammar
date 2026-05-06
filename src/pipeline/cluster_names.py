@@ -9,7 +9,7 @@ A name has the form ``{n_clicks}{rhythm}{tempo_rank?}`` where
   ``n_clicks + rhythm``: ``1`` is the fastest (shortest mean coda duration),
   larger ranks slower.
 
-Pacific-discovered clusters (section A of next_phases_plan.md) get a ``P``
+Pacific-discovered clusters (see docs/obsidian/classifier/pacific-extension.md) get a ``P``
 marker so they don't collide with Gero's published EC names:
 
 - Same shape as an existing EC type, different tempo band: ``5RP1``, ``5RP2``.

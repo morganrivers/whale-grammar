@@ -43,8 +43,8 @@ def test_dswp_real_codatype_conservation_exact():
     pass through with that exact value as ``coda_type_gero21``. Rows
     whose ``CodaType`` ends in ``-NOISE`` are deliberately re-pooled
     into the discovery pass and may emerge with a discovered-cluster
-    label (the Sharma-NOISE second-chance recovery in
-    ``whale_grammar_transformer_plan`` §1.2)."""
+    label — the Sharma-NOISE second-chance recovery, see
+    ``docs/obsidian/classifier/classifier.md`` §"The four numbers"."""
     df = _load_classified()
     lookup = _load_dominica_lookup()
     is_dswp = df["source"] == "sharma2024_dswp"

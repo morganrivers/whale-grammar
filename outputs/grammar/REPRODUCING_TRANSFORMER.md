@@ -1,10 +1,10 @@
 # Reproducing the whale-grammar transformer
 
 Clean handoff for someone re-running the unified-corpus MiniTransformer
-benchmark from scratch. The conversational version of this story lives
-at `transformer-training.md` (Sharma-only era) and
-`reproducibility/whale_grammar_transformer_plan.md` (unified-corpus
-Stages 1–4). This file is the polished, end-to-end recipe.
+benchmark from scratch. The full vault writeup is at
+`docs/obsidian/transformer/transformer.md` (and the end-to-end command
+list at `docs/obsidian/overview/reproduce.md`); this file is the
+polished, single-file recipe.
 
 ## What this produces
 
@@ -37,8 +37,7 @@ unigram baseline (perplexity 28.6 → 9.1).
 The reference benchmark from
 `~/Code/whale-gpt @ claude/whale-language-research-tEudI` used a
 rhythm·tempo·orn·rubato compound `Token` with V≈207 on ~4,800 Sharma
-DSWP codas (`transformer-training.md` and the prior
-`outputs/grammar/predict_models.md`):
+DSWP codas (the prior `outputs/grammar/predict_models.md`):
 
 | model | prior (Sharma-only V≈207, ~4,800 codas) | unified (V=132, ~38k codas) |
 |---|---:|---:|
@@ -56,8 +55,9 @@ The unified corpus uses `Coda1` (rhythm class only) where the prior used
 a compound `Token` with ~50 % more vocabulary; `log2(132/207) ≈ −0.66`
 accounts for roughly half of the gap, the rest is the corpus being
 ~8 × larger and the model generalizing better. See
-`reproducibility/whale_grammar_transformer_plan.md` §6 for the full
-caveat list.
+`docs/obsidian/transformer/results.md` and
+`docs/obsidian/transformer/childes-comparison.md` for the cross-corpus
+caveats.
 
 What carries over cleanly:
 
@@ -146,8 +146,8 @@ python -m src.grammar.predict_kfold
   This run targets the rhythm-class integer `Coda1` directly on ~38k
   codas with V=131. Lower V → lower entropy floor; absolute bits/token
   are not directly comparable. See
-  `reproducibility/whale_grammar_transformer_plan.md` §6 for the full
-  caveat list.
+  `docs/obsidian/transformer/childes-comparison.md` for the
+  fraction-of-unigram-entropy normalization that handles this.
 * **Hersh has no inter-coda timestamps.** Every Hersh row's
   `DeltaTime = -1`. Stage-1 of the plan deliberately ignores
   `DeltaTime` to reproduce the prior protocol; adding it as a feature
@@ -157,6 +157,11 @@ python -m src.grammar.predict_kfold
 
 ## Going further
 
-* `reproducibility/whale_grammar_transformer_plan.md` — current plan.
-* `transformer-training.md` — original Sharma-only research-session
-  transcript that produced the MiniTransformer architecture.
+* `docs/obsidian/transformer/transformer.md` — full vault writeup,
+  model menu, code map.
+* `docs/obsidian/transformer/results.md` — every benchmark table in
+  one place.
+* `docs/obsidian/transformer/schema-redesign.md` — R0/R1/R2 experiment
+  notes.
+* `docs/obsidian/interp/interp.md` — what the trained model is doing
+  internally.

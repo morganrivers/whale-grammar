@@ -1,0 +1,21 @@
+source: childes
+seed: 42
+V: 1605; n_dt_buckets: 3; K: 8
+n_params: 307,848
+dt_weight: 0.5
+n_train_windows: 31425; n_val_windows: 4392
+held-out seeds: ['childes::020700::5::18', 'childes::021106b::8::55', 'childes::021106b::8::19']
+epoch   1  train coda=5.716 dt=0.750  | val coda=5.532 dt=0.699
+epoch   2  train coda=5.187 dt=0.717  | val coda=5.498 dt=0.696
+epoch   3  train coda=5.074 dt=0.713  | val coda=5.497 dt=0.692
+epoch   4  train coda=4.994 dt=0.711  | val coda=5.516 dt=0.691
+epoch   5  train coda=4.931 dt=0.709  | val coda=5.537 dt=0.691
+epoch   6  train coda=4.878 dt=0.709  | val coda=5.563 dt=0.692
+epoch   7  train coda=4.835 dt=0.708  | val coda=5.592 dt=0.692
+epoch   8  train coda=4.799 dt=0.708  | val coda=5.623 dt=0.693
+early stop at epoch 8
+
+val final-position coda bpt: 8.1099  (M7 benchmark on whale: 3.186)
+val final-position coda acc: 0.0751
+val final-position dt   bpt: 0.9960
+val final-position dt   acc: 0.7707

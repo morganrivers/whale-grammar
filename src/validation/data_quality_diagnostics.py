@@ -1,10 +1,11 @@
-"""§0 data-quality diagnostics for the Pacific classifier v2 plan.
+"""Data-quality diagnostics for the hybrid Pacific classifier.
 
 Question: is some non-trivial fraction of the 28% NOISE rate a property of
 the Hersh dataset (echolocation, low-SNR detections, cross-species clicks,
-unification residuals) rather than a classifier shortfall? Per
-``reproducibility/pacific_classifier_v2_plan.md`` §0, run these *before*
-tuning the classifier — they may invalidate later tuning work.
+unification residuals) rather than a classifier shortfall? See
+``docs/obsidian/classifier/pacific-extension.md`` §"NOISE rate caveat" —
+run these *before* tuning the classifier; they may invalidate later
+tuning work.
 
 Five runnable diagnostics, all reading
 ``data/classified/codas_classified.csv``:

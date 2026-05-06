@@ -1,0 +1,25 @@
+loaded multilang: 417 conversations, V=867, dt scheme=multilang (5 buckets)
+held-out seeds (clean tiers only): ['zh_birth::zh::TCCM::020200::2', 'zh_dswp::zh::TCCM::010800::13']
+train windows: (32469, 9);  val windows: (3337, 9)
+model + dt_head params: 212,776
+Moving model to device:  cpu
+epoch   1  train coda=5.770 dt=0.923  | val coda=5.648 dt=0.761
+epoch   2  train coda=5.291 dt=0.843  | val coda=5.550 dt=0.750
+epoch   3  train coda=5.136 dt=0.836  | val coda=5.508 dt=0.749
+epoch   4  train coda=5.033 dt=0.832  | val coda=5.496 dt=0.748
+epoch   5  train coda=4.960 dt=0.831  | val coda=5.504 dt=0.747
+epoch   6  train coda=4.906 dt=0.829  | val coda=5.496 dt=0.752
+epoch   7  train coda=4.863 dt=0.828  | val coda=5.489 dt=0.746
+epoch   8  train coda=4.829 dt=0.828  | val coda=5.492 dt=0.749
+epoch   9  train coda=4.802 dt=0.828  | val coda=5.492 dt=0.749
+epoch  10  train coda=4.779 dt=0.827  | val coda=5.501 dt=0.762
+epoch  11  train coda=4.760 dt=0.827  | val coda=5.515 dt=0.757
+epoch  12  train coda=4.743 dt=0.827  | val coda=5.522 dt=0.752
+early stop at epoch 12
+Moving model to device:  cpu
+val final-position coda bpt: 8.2360  (M7 benchmark on whale: 3.186)
+val final-position coda acc: 0.0360
+val final-position dt   bpt: 1.0807
+val final-position dt   acc: 0.7842
+
+wrote checkpoint to /home/dmrivers/Code/whale-grammar/outputs/grammar/checkpoints/multilang/

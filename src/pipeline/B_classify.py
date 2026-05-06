@@ -1,6 +1,6 @@
 """Classify the unified ICI corpus into Gero-21 / rhythm-18 + tempo + rubato.
 
-Pipeline (per ``next_phases_plan.md`` section C):
+Pipeline (see ``docs/obsidian/classifier/classifier.md``):
 
 1. **Attach DSWP truth.** Join ``codaNUM2018`` ↔ ``source_coda_id`` against
    ``dswp_dominica_codas.csv`` to get Gero's published ``CodaType`` for every
@@ -333,7 +333,7 @@ def classify(unified: pd.DataFrame, refresh: bool = False) -> pd.DataFrame:
           f"({n_orn:,} ornaments). Hersh rows left NA per Sharma §5 "
           f"applicability.")
 
-    # Acceptance gating numbers (per next_phases_plan.md §C):
+    # Acceptance gating numbers (see docs/obsidian/classifier/classifier.md):
     _print_acceptance_metrics(df, df_dominica)
 
     return df
@@ -347,9 +347,9 @@ def _print_acceptance_metrics(df: pd.DataFrame, df_dominica: pd.DataFrame) -> No
 
     # 1. DSWP 'real' CodaType conservation (non-NOISE rows must be exact).
     #    Sharma-NOISE rows are deliberately re-pooled into the OPTICSxi
-    #    discovery pass (see whale_grammar_transformer_plan §1.4) and may
-    #    end up with a discovered-cluster label — that is recovery, not a
-    #    regression, and is excluded from this exactness check.
+    #    discovery pass (see docs/obsidian/classifier/pacific-extension.md)
+    #    and may end up with a discovered-cluster label — that is recovery,
+    #    not a regression, and is excluded from this exactness check.
     is_dswp = df["source"] == "sharma2024_dswp"
     if is_dswp.any():
         lookup = df_dominica.set_index(df_dominica["codaNUM2018"].astype(str))[

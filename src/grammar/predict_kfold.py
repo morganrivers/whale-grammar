@@ -3,8 +3,8 @@ Held-out next-token prediction on the unified-corpus transformer CSV.
 
 Ported from `~/Code/whale-gpt @ claude/whale-language-research-tEudI`'s
 `scripts/7_predict_logloss.py`. Adapted to read
-`data/classified/whale_dialogues.csv` directly (Stage-4 transformer input,
-schema documented in reproducibility/whale_grammar_transformer_plan.md §3.2).
+`data/classified/whale_dialogues.csv` directly (transformer input,
+schema documented in docs/obsidian/transformer/corpus-design.md).
 
 Single target = the primary whale's `Coda1` (rhythm_class integer).
 Vocabulary is dynamic from the data — currently 131 distinct rhythm

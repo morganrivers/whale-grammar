@@ -1,15 +1,16 @@
-"""§4 variance analysis for the Pacific classifier v2.
+"""Variance analysis used to derive per-type τ thresholds for the
+hybrid classifier (see ``docs/obsidian/classifier/pacific-extension.md``
+§τ).
 
-Step A of ``reproducibility/pacific_classifier_v2_implementation_notes.md``.
-Computes the three CSVs the v2 plan §4 needs to pick a layer-3 sub-option:
+Computes three CSVs:
 
-  §4.1 within-DSWP variance per CodaType    -> dswp_variance.csv
-  §4.2 cross-corpus distance distribution    -> pacific_distances.csv
-  §4.3 per-clan coverage + within-clan var.  -> clan_summary.csv
+  within-DSWP variance per CodaType    -> dswp_variance.csv
+  cross-corpus distance distribution    -> pacific_distances.csv
+  per-clan coverage + within-clan var.  -> clan_summary.csv
 
 Plus visual aids (z-scaled PCA scatter, per-clan stacked bar). The CSV
 metrics use raw (unscaled) Euclidean distance — the same units as the
-kNN+τ classifier in Step B.
+kNN+τ classifier in ``B_classify_optics.match_other_codas``.
 
 Run from repo root::
 

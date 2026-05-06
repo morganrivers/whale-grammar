@@ -1,7 +1,8 @@
-"""Hybrid Sharma-anchored / Pacific-discovery classifier (Stage 2 of
-``reproducibility/whale_grammar_transformer_plan.md``).
+"""Hybrid Sharma-anchored / Pacific-discovery classifier.
 
-Promoted from ``src/validation/hybrid_classify.py``. Three passes:
+Documented at ``docs/obsidian/classifier/classifier.md`` and
+``docs/obsidian/classifier/pacific-extension.md``. Promoted from
+``src/validation/hybrid_classify.py``. Three passes:
 
 1. **Sharma 'real' anchor.** Every DSWP row whose published ``CodaType``
    is a non-``-NOISE`` value is locked to that label (origin

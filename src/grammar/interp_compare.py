@@ -70,6 +70,8 @@ from torch import nn
 
 from src.grammar.dt_buckets import (
     CHILDES_INTRA, CHILDES_PERIOD, CHILDES_SWITCH,
+    MULTILANG_INTRA_WORD, MULTILANG_WORD_BOUND, MULTILANG_PERIOD,
+    MULTILANG_SWITCH,
     WHALE_DT_MIDPOINTS, scheme_for, whale_bucket_display,
 )
 from src.grammar.m7_hooked import N_CTX, make_m7_hooked
@@ -83,7 +85,7 @@ ROOT = Path(__file__).resolve().parents[2]
 CKPT_DIR = ROOT / "outputs" / "grammar" / "checkpoints"
 OUT_DIR = ROOT / "outputs" / "grammar" / "interp"
 
-SOURCES = ("whale", "childes")
+SOURCES = ("whale", "childes", "multilang")
 
 
 # ---------------------------------------------------------------------------
@@ -97,7 +99,8 @@ def load_checkpoint(source: str):
     vocab = json.loads((src_dir / "vocab.json").read_text())
     seeds = json.loads((src_dir / "seeds.json").read_text())
 
-    model = make_m7_hooked(d_vocab=cfg["d_vocab"])
+    model = make_m7_hooked(d_vocab=cfg["d_vocab"],
+                           n_ctx=int(cfg.get("n_ctx", N_CTX)))
     state = torch.load(src_dir / "model.pt", map_location="cpu", weights_only=True)
     model.load_state_dict(state)
     model.eval()
@@ -361,14 +364,37 @@ def render_whale_block(
     dt_seconds: list[float] | None,
     speakers: list[str] | None,
     vocab: list[str],
+    speaker_pool: list[str] | None = None,
 ) -> str:
-    """Multi-line whale block. New "Whale <spk>:" line at every speaker
-    change. Generated continuations have no per-token speaker info, so
-    `speakers` is None and the renderer emits a single "Whale ?:" line.
+    """Multi-line whale block. For seed originals (speakers != None) we
+    break on the real per-token speaker. For generated continuations
+    (speakers is None) we break on the predicted `WHALE_SWITCH` DT bucket
+    and cycle through `speaker_pool` so the output reads as turn-taking.
     """
+    from src.grammar.dt_buckets import WHALE_SWITCH
+
     if speakers is None:
-        return render_whale_line(tokens, dt_buckets, dt_seconds, "?", vocab)
-    out: list[str] = []
+        # Generation: use the predicted DT-bucket switches as line breaks,
+        # cycling speakers through the pool.
+        pool = [s.split("::")[-1] for s in (speaker_pool or [])]
+        cur_speaker = pool[0] if pool else "?"
+        out: list[str] = []
+        cur_start = 0
+        for i in range(1, len(tokens) + 1):
+            is_switch = i < len(tokens) and dt_buckets[i] == WHALE_SWITCH
+            if is_switch or i == len(tokens):
+                out.append(render_whale_line(
+                    tokens[cur_start:i], dt_buckets[cur_start:i],
+                    dt_seconds[cur_start:i] if dt_seconds is not None else None,
+                    cur_speaker, vocab,
+                ))
+                cur_start = i
+                if is_switch:
+                    cur_speaker = _alternate(pool, cur_speaker)
+        return "\n".join(out)
+
+    # Seed-original path: break on real speaker changes (whale-CSV ground truth).
+    out = []
     cur_start = 0
     cur_speaker = speakers[0].split("::")[-1]
     for i in range(1, len(tokens) + 1):
@@ -450,6 +476,90 @@ def render_childes_block(
     return "\n".join(out)
 
 
+def render_multilang_block(
+    tokens: list[int],
+    dt_buckets: list[int],
+    speakers: list[str] | None,
+    vocab: list[str],
+    speaker_pool: list[str] | None = None,
+) -> str:
+    """Multilang transcript with sub-tokens concatenated within a word,
+    word-spaced within an utterance, prefixes (`jp:`/`en:`/`zh:`)
+    stripped:
+
+      *CHI:\tkondo kondo no t .
+      *MOT:\tsoo da ne .
+
+    Bucket 0 (intra_word)   → concatenate to current word, no separator.
+    Bucket 1 (word_bound)   → finalise current word, start a new word
+                              (single space).
+    Bucket 2 (period)       → end utterance with `.`, same speaker.
+    Bucket 3 (switch)       → end utterance with `.`, new speaker.
+
+    A language switch mid-word also forces a space (so a JP word with an
+    EN phoneme inserted reads `kondo K do` rather than `kondoKdo`).
+    """
+    if not tokens:
+        return ""
+
+    def spk_label(s: str | None) -> str:
+        if not s:
+            return "?"
+        return s.split("::")[-1]
+
+    def split_lang(word: str) -> tuple[str, str]:
+        if ":" in word:
+            lang, sub = word.split(":", 1)
+            return lang, sub
+        return "", word
+
+    out: list[str] = []
+    # `cur_words` is the list of finished words for the current utterance;
+    # `cur_word_chunks` is the in-progress word, list of (lang, text)
+    # chunks (chunks split on language switch).
+    cur_words: list[str] = []
+    cur_word_chunks: list[tuple[str, str]] = []
+    cur_speaker = spk_label(speakers[0]) if speakers else (
+        spk_label(speaker_pool[0]) if speaker_pool else "?")
+    pool = [spk_label(s) for s in (speaker_pool or [])]
+
+    def finalize_word():
+        if cur_word_chunks:
+            cur_words.append(
+                " ".join(t for _, t in cur_word_chunks if t))
+            cur_word_chunks.clear()
+
+    def flush(end="."):
+        finalize_word()
+        if cur_words:
+            out.append(f"  *{cur_speaker}:\t" + " ".join(cur_words) + f" {end}")
+            cur_words.clear()
+
+    def append_subtoken(lang: str, sub: str):
+        if cur_word_chunks and cur_word_chunks[-1][0] == lang:
+            last_lang, last_text = cur_word_chunks[-1]
+            cur_word_chunks[-1] = (last_lang, last_text + sub)
+        else:
+            cur_word_chunks.append((lang, sub))
+
+    for i, (tok, b) in enumerate(zip(tokens, dt_buckets)):
+        word = vocab[tok] if 0 <= tok < len(vocab) else f"<{tok}>"
+        lang, sub = split_lang(word)
+        if i > 0 and b == MULTILANG_SWITCH:
+            flush(".")
+            if speakers and i < len(speakers):
+                cur_speaker = spk_label(speakers[i])
+            else:
+                cur_speaker = _alternate(pool, cur_speaker)
+        elif i > 0 and b == MULTILANG_PERIOD:
+            flush(".")
+        elif i > 0 and b == MULTILANG_WORD_BOUND:
+            finalize_word()
+        append_subtoken(lang, sub)
+    flush(".")
+    return "\n".join(out)
+
+
 def render_seed_original(source: str, seed: dict, vocab: list[str],
                          take_first: int) -> str:
     """Render the first `take_first` tokens of a held-out seed
@@ -462,6 +572,8 @@ def render_seed_original(source: str, seed: dict, vocab: list[str],
     speakers = seed.get("speakers", [""] * len(tokens))[:take_first]
     if source == "whale":
         return render_whale_block(tokens, dts, times, speakers, vocab)
+    if source == "multilang":
+        return render_multilang_block(tokens, dts, speakers, vocab)
     return render_childes_block(tokens, dts, speakers, vocab)
 
 
@@ -474,7 +586,11 @@ def render_seed_continuation(source: str, gen_tokens: list[int],
     (Δt~1.8 etc.) and CHILDES rotates through the seed conversation's
     speaker pool whenever the DT head fires `switch`."""
     if source == "whale":
-        return render_whale_block(gen_tokens, gen_dt_buckets, None, None, vocab)
+        return render_whale_block(gen_tokens, gen_dt_buckets, None, None, vocab,
+                                  speaker_pool=speaker_pool)
+    if source == "multilang":
+        return render_multilang_block(gen_tokens, gen_dt_buckets, None, vocab,
+                                      speaker_pool=speaker_pool)
     return render_childes_block(gen_tokens, gen_dt_buckets, None, vocab,
                                 speaker_pool=speaker_pool)
 
@@ -557,23 +673,24 @@ def plot_logit_lens(per_layer_acc: np.ndarray, out_path: Path, title: str):
 def run_one_source(source: str, args):
     print(f"\n=== {source.upper()} ===")
     model, dt_head, cfg, vocab, seeds = load_checkpoint(source)
+    K = model.cfg.n_ctx  # honor the trained checkpoint's context length
     out_dir = OUT_DIR / source
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    # Build a held-out eval pool: 9-token contiguous spans drawn from the
+    # Build a held-out eval pool: K+1-token contiguous spans drawn from the
     # seed conversations themselves (these were never in training). Use
     # them for per-head stats and logit-lens.
     eval_spans = []
     for seed_obj in seeds:
         toks = seed_obj["tokens"]
-        for i in range(0, max(0, len(toks) - N_CTX), 1):
-            eval_spans.append(toks[i : i + N_CTX + 1])
+        for i in range(0, max(0, len(toks) - K), 1):
+            eval_spans.append(toks[i : i + K + 1])
     if len(eval_spans) > 800:
         rng = np.random.default_rng(0)
         eval_spans = [eval_spans[i] for i in rng.choice(len(eval_spans), 800, replace=False)]
     eval_spans_kp1 = torch.tensor(eval_spans, dtype=torch.long)
     eval_inputs = eval_spans_kp1[:, :-1]
-    print(f"eval spans (K+1={N_CTX + 1}): {eval_spans_kp1.shape}")
+    print(f"eval spans (K+1={K + 1}): {eval_spans_kp1.shape}")
 
     # Per-head stats + induction
     stats = per_head_stats(model, eval_inputs)
@@ -595,8 +712,8 @@ def run_one_source(source: str, args):
 
     # Attention pattern HTML per seed (first K tokens)
     for i, seed_obj in enumerate(seeds):
-        toks = seed_obj["tokens"][:N_CTX]
-        if len(toks) < N_CTX:
+        toks = seed_obj["tokens"][:K]
+        if len(toks) < K:
             continue
         x = torch.tensor([toks], dtype=torch.long)
         _, cache = model.run_with_cache(x)
@@ -634,30 +751,30 @@ def run_one_source(source: str, args):
     mean_conv_len = int(np.mean([s["length"] for s in seeds])) if seeds else 60
     for i, seed_obj in enumerate(seeds):
         toks = seed_obj["tokens"]
-        if len(toks) < N_CTX:
+        if len(toks) < K:
             continue
-        prefix = toks[:N_CTX]
-        n_new = max(1, mean_conv_len - N_CTX)
+        prefix = toks[:K]
+        n_new = max(1, mean_conv_len - K)
         speaker_pool = list(dict.fromkeys(seed_obj.get("speakers", []) or []))
 
         cont_md.append(f"## seed {i} — `{seed_obj['sequenceId']}`")
         cont_md.append(
             f"original length: {seed_obj['length']}; generating {n_new} "
-            f"new tokens after the K={N_CTX} prefix"
+            f"new tokens after the K={K} prefix"
         )
 
-        cont_md.append("\n**prefix (first 8 tokens, rendered from real CSV):**")
+        cont_md.append(f"\n**prefix (first {K} tokens, rendered from real CSV):**")
         cont_md.append("```")
-        cont_md.append(render_seed_original(source, seed_obj, vocab, N_CTX))
+        cont_md.append(render_seed_original(source, seed_obj, vocab, K))
         cont_md.append("```")
 
         cont_md.append("\n**original continuation (ground truth):**")
         cont_md.append("```")
         gt_seed = dict(seed_obj)
-        gt_seed["tokens"] = seed_obj["tokens"][N_CTX:mean_conv_len]
-        gt_seed["dt_buckets"] = seed_obj["dt_buckets"][N_CTX:mean_conv_len]
-        gt_seed["times"] = seed_obj.get("times", [])[N_CTX:mean_conv_len]
-        gt_seed["speakers"] = seed_obj.get("speakers", [])[N_CTX:mean_conv_len]
+        gt_seed["tokens"] = seed_obj["tokens"][K:mean_conv_len]
+        gt_seed["dt_buckets"] = seed_obj["dt_buckets"][K:mean_conv_len]
+        gt_seed["times"] = seed_obj.get("times", [])[K:mean_conv_len]
+        gt_seed["speakers"] = seed_obj.get("speakers", [])[K:mean_conv_len]
         cont_md.append(render_seed_original(source, gt_seed, vocab, len(gt_seed["tokens"])))
         cont_md.append("```")
 

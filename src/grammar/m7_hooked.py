@@ -36,14 +36,14 @@ D_MLP = 4 * D_MODEL          # 256
 N_CTX = 8                    # context K from predict_kfold.CONTEXT_K
 
 
-def make_m7_config(d_vocab: int) -> HookedTransformerConfig:
+def make_m7_config(d_vocab: int, n_ctx: int = N_CTX) -> HookedTransformerConfig:
     return HookedTransformerConfig(
         n_layers=N_LAYERS,
         n_heads=N_HEADS,
         d_model=D_MODEL,
         d_head=D_HEAD,
         d_mlp=D_MLP,
-        n_ctx=N_CTX,
+        n_ctx=n_ctx,
         d_vocab=d_vocab,
         d_vocab_out=d_vocab,
         act_fn="gelu",
@@ -57,6 +57,6 @@ def make_m7_config(d_vocab: int) -> HookedTransformerConfig:
     )
 
 
-def make_m7_hooked(d_vocab: int) -> HookedTransformer:
-    cfg = make_m7_config(d_vocab)
+def make_m7_hooked(d_vocab: int, n_ctx: int = N_CTX) -> HookedTransformer:
+    cfg = make_m7_config(d_vocab, n_ctx=n_ctx)
     return HookedTransformer(cfg)
