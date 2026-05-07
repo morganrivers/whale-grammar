@@ -35,8 +35,8 @@ OUT_DIR = Path("outputs/morphemes")
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 # ── Config ────────────────────────────────────────────────────────────────────
-N_BINS = 5
-LABELS = "ABCDE"
+N_BINS = 4
+LABELS = "ABCD"
 # Tempo is 1-5; map to single chars that don't clash with ABCDE
 TEMPO_CHARS = {1: "P", 2: "Q", 3: "R", 4: "S", 5: "T"}
 TEMPO_FALLBACK = "U"
