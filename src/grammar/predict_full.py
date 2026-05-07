@@ -1043,6 +1043,16 @@ def run_one_fold(fold_i, hersh_ids, clean_train_ids, val_ids, test_ids,
         metrics["seconds"] = round(time.time() - t0, 1)
         fold_out[" | ".join(cell)] = metrics
         print(_format_metrics_line(CELL_LABEL[cell], target, metrics))
+        # Save best-val checkpoint for later inspection / interpretability.
+        if "error" not in metrics:
+            ckpt_stem = "_".join([args.out_prefix] + list(cell) + [f"fold{fold_i}"])
+            ckpt_path = _OUT_DIR / "checkpoints" / f"{ckpt_stem}.pt"
+            ckpt_path.parent.mkdir(parents=True, exist_ok=True)
+            torch.save({"state_dict": model.state_dict(),
+                        "arch": arch, "target": target, "loss_agg": loss_agg,
+                        "fold": fold_i, "k": args.k,
+                        "V_coda": V_coda, "V_token": V_token, "V_dt": V_dt,
+                        "metrics": metrics}, ckpt_path)
         del model
 
     # ------------------------------------------------------------------

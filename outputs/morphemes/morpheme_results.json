@@ -7,11 +7,11 @@
     },
     "unique_strings": 1916,
     "total_codas": 37684,
-    "strings_segmented": 1545,
+    "strings_segmented": 1544,
     "morpheme_inventory": [
       [
         "AAAA",
-        3150
+        3151
       ],
       [
         "DDCC",
@@ -27,7 +27,7 @@
       ],
       [
         "DD",
-        1065
+        1061
       ],
       [
         "BB",
@@ -47,7 +47,7 @@
       ],
       [
         "CCDD",
-        787
+        783
       ],
       [
         "CCBB",
@@ -55,7 +55,7 @@
       ],
       [
         "CB",
-        753
+        749
       ],
       [
         "DDCB",
@@ -67,7 +67,7 @@
       ],
       [
         "CC",
-        655
+        648
       ],
       [
         "BBCC",
@@ -75,11 +75,11 @@
       ],
       [
         "DB",
-        598
+        601
       ],
       [
         "DC",
-        534
+        533
       ],
       [
         "CBAB",
@@ -87,7 +87,7 @@
       ],
       [
         "CDD",
-        473
+        477
       ],
       [
         "CCD",
@@ -115,7 +115,7 @@
       ],
       [
         "CDDD",
-        376
+        377
       ],
       [
         "BBBC",
@@ -127,7 +127,7 @@
       ],
       [
         "AAA",
-        335
+        339
       ],
       [
         "AAAAAAA",
@@ -163,7 +163,7 @@
       ],
       [
         "BBD",
-        258
+        259
       ],
       [
         "BD",
@@ -246,19 +246,19 @@
         160
       ],
       [
+        "ABB",
+        160
+      ],
+      [
         "BBC",
         160
       ],
       [
-        "ABB",
-        159
+        "CBBA",
+        158
       ],
       [
         "CCCC",
-        159
-      ],
-      [
-        "CBBA",
         158
       ],
       [
@@ -274,10 +274,6 @@
         157
       ],
       [
-        "AAAC",
-        156
-      ],
-      [
         "CDBB",
         153
       ],
@@ -286,8 +282,12 @@
         152
       ],
       [
+        "AAAC",
+        152
+      ],
+      [
         "AAAAAB",
-        147
+        146
       ],
       [
         "CCDDC",
@@ -506,6 +506,10 @@
         66
       ],
       [
+        "CCC",
+        66
+      ],
+      [
         "CBBC",
         66
       ],
@@ -516,18 +520,6 @@
       [
         "DBB",
         65
-      ],
-      [
-        "CCC",
-        63
-      ],
-      [
-        "CDB",
-        62
-      ],
-      [
-        "DA",
-        62
       ],
       [
         "BDD",
@@ -550,12 +542,20 @@
         61
       ],
       [
+        "DA",
+        60
+      ],
+      [
         "AAAAABB",
         60
       ],
       [
         "BCCCB",
         60
+      ],
+      [
+        "CDB",
+        59
       ],
       [
         "DDDDC",
@@ -602,10 +602,6 @@
         52
       ],
       [
-        "BBBD",
-        50
-      ],
-      [
         "BBBBB",
         50
       ],
@@ -619,6 +615,10 @@
       ],
       [
         "BBAB",
+        49
+      ],
+      [
+        "BBBD",
         49
       ],
       [
@@ -830,15 +830,7 @@
         28
       ],
       [
-        "BABB",
-        28
-      ],
-      [
         "AABBC",
-        28
-      ],
-      [
-        "BCDDD",
         28
       ],
       [
@@ -847,6 +839,14 @@
       ],
       [
         "CCAA",
+        27
+      ],
+      [
+        "BABB",
+        27
+      ],
+      [
+        "BCDDD",
         27
       ],
       [
@@ -906,6 +906,10 @@
         25
       ],
       [
+        "ABDC",
+        24
+      ],
+      [
         "ABA",
         24
       ],
@@ -927,10 +931,6 @@
       ],
       [
         "CAB",
-        23
-      ],
-      [
-        "ABDC",
         23
       ],
       [
@@ -1174,6 +1174,10 @@
         12
       ],
       [
+        "DAB",
+        12
+      ],
+      [
         "ACCD",
         12
       ],
@@ -1218,15 +1222,15 @@
         11
       ],
       [
+        "CCCCB",
+        11
+      ],
+      [
         "ACDC",
         10
       ],
       [
         "DCDCBB",
-        10
-      ],
-      [
-        "DAB",
         10
       ],
       [
@@ -1243,10 +1247,6 @@
       ],
       [
         "BBBABBB",
-        10
-      ],
-      [
-        "CCCCB",
         10
       ],
       [
@@ -1438,6 +1438,10 @@
         4
       ],
       [
+        "CBCCCCDD",
+        4
+      ],
+      [
         "ACA",
         3
       ],
@@ -1497,7 +1501,7 @@
     "purity_analysis": [
       {
         "morpheme": "AAAA",
-        "total_occurrences": 3150,
+        "total_occurrences": 3151,
         "n_rhythm_classes": 25,
         "modal_rc": 79,
         "purity": 0.602
@@ -1525,7 +1529,7 @@
       },
       {
         "morpheme": "DD",
-        "total_occurrences": 1065,
+        "total_occurrences": 1061,
         "n_rhythm_classes": 52,
         "modal_rc": 45,
         "purity": 0.096
@@ -1560,10 +1564,10 @@
       },
       {
         "morpheme": "CCDD",
-        "total_occurrences": 787,
+        "total_occurrences": 783,
         "n_rhythm_classes": 24,
         "modal_rc": 81,
-        "purity": 0.665
+        "purity": 0.668
       },
       {
         "morpheme": "CCBB",
@@ -1574,10 +1578,10 @@
       },
       {
         "morpheme": "CB",
-        "total_occurrences": 753,
+        "total_occurrences": 749,
         "n_rhythm_classes": 31,
         "modal_rc": 23,
-        "purity": 0.66
+        "purity": 0.664
       },
       {
         "morpheme": "DDCB",
@@ -1595,10 +1599,10 @@
       },
       {
         "morpheme": "CC",
-        "total_occurrences": 655,
-        "n_rhythm_classes": 34,
+        "total_occurrences": 648,
+        "n_rhythm_classes": 33,
         "modal_rc": 23,
-        "purity": 0.615
+        "purity": 0.622
       },
       {
         "morpheme": "BBCC",
@@ -1609,17 +1613,17 @@
       },
       {
         "morpheme": "DB",
-        "total_occurrences": 598,
+        "total_occurrences": 601,
         "n_rhythm_classes": 28,
         "modal_rc": 23,
-        "purity": 0.615
+        "purity": 0.612
       },
       {
         "morpheme": "DC",
-        "total_occurrences": 534,
+        "total_occurrences": 533,
         "n_rhythm_classes": 32,
         "modal_rc": 23,
-        "purity": 0.434
+        "purity": 0.435
       },
       {
         "morpheme": "CBAB",
@@ -1630,10 +1634,10 @@
       },
       {
         "morpheme": "CDD",
-        "total_occurrences": 473,
-        "n_rhythm_classes": 20,
+        "total_occurrences": 477,
+        "n_rhythm_classes": 21,
         "modal_rc": 62,
-        "purity": 0.643
+        "purity": 0.637
       },
       {
         "morpheme": "CCD",
@@ -1679,10 +1683,10 @@
       },
       {
         "morpheme": "CDDD",
-        "total_occurrences": 376,
+        "total_occurrences": 377,
         "n_rhythm_classes": 18,
         "modal_rc": 81,
-        "purity": 0.606
+        "purity": 0.605
       },
       {
         "morpheme": "BBBC",
@@ -1700,10 +1704,10 @@
       },
       {
         "morpheme": "AAA",
-        "total_occurrences": 335,
+        "total_occurrences": 339,
         "n_rhythm_classes": 23,
         "modal_rc": 61,
-        "purity": 0.716
+        "purity": 0.708
       },
       {
         "morpheme": "AAAAAAA",
@@ -1763,10 +1767,10 @@
       },
       {
         "morpheme": "BBD",
-        "total_occurrences": 258,
-        "n_rhythm_classes": 27,
+        "total_occurrences": 259,
+        "n_rhythm_classes": 28,
         "modal_rc": 62,
-        "purity": 0.426
+        "purity": 0.425
       },
       {
         "morpheme": "BD",
@@ -1908,7 +1912,7 @@
       ],
       [
         "DDDDDT",
-        383
+        384
       ],
       [
         "CCBAR",
@@ -1916,7 +1920,7 @@
       ],
       [
         "CCDDT",
-        347
+        348
       ],
       [
         "DBQ",
@@ -1925,6 +1929,10 @@
       [
         "DDBBS",
         305
+      ],
+      [
+        "AA",
+        301
       ],
       [
         "BBBCR",
@@ -1951,10 +1959,6 @@
         272
       ],
       [
-        "AA",
-        265
-      ],
-      [
         "AAAAAP",
         262
       ],
@@ -1975,10 +1979,6 @@
         255
       ],
       [
-        "B",
-        253
-      ],
-      [
         "DDBCT",
         249
       ],
@@ -1987,8 +1987,12 @@
         247
       ],
       [
+        "B",
+        247
+      ],
+      [
         "DDDCT",
-        246
+        245
       ],
       [
         "AAAP",
@@ -2005,10 +2009,6 @@
       [
         "ABBBQ",
         224
-      ],
-      [
-        "A",
-        219
       ],
       [
         "DDDR",
@@ -2031,12 +2031,16 @@
         199
       ],
       [
+        "A",
+        194
+      ],
+      [
         "CDDS",
         189
       ],
       [
         "BCDR",
-        184
+        183
       ],
       [
         "AAADDT",
@@ -2055,12 +2059,12 @@
         173
       ],
       [
-        "AAAAAAP",
-        171
+        "CCDDDT",
+        173
       ],
       [
-        "CCDDDT",
-        169
+        "AAAAAAP",
+        171
       ],
       [
         "CDDR",
@@ -2119,24 +2123,24 @@
         131
       ],
       [
+        "C",
+        130
+      ],
+      [
         "AAABQ",
         126
+      ],
+      [
+        "CCCDDT",
+        125
       ],
       [
         "AAP",
         124
       ],
       [
-        "CCCDDT",
-        124
-      ],
-      [
-        "C",
-        122
-      ],
-      [
         "AADP",
-        118
+        119
       ],
       [
         "BBCCCCCT",
@@ -2207,16 +2211,16 @@
         95
       ],
       [
+        "DCDDT",
+        94
+      ],
+      [
         "CCDDCDDT",
         94
       ],
       [
         "BBBDDT",
         94
-      ],
-      [
-        "DCDDT",
-        93
       ],
       [
         "DCBBR",
@@ -2251,7 +2255,15 @@
         83
       ],
       [
+        "D",
+        82
+      ],
+      [
         "BCCDDT",
+        82
+      ],
+      [
+        "AB",
         81
       ],
       [
@@ -2264,10 +2276,6 @@
       ],
       [
         "DDCBT",
-        80
-      ],
-      [
-        "D",
         80
       ],
       [
@@ -2301,10 +2309,6 @@
       [
         "BCBBR",
         75
-      ],
-      [
-        "AB",
-        74
       ],
       [
         "DDBBT",
@@ -2459,11 +2463,23 @@
         53
       ],
       [
+        "BB",
+        52
+      ],
+      [
         "BBCDT",
-        53
+        51
       ],
       [
         "AAAAAAABR",
+        50
+      ],
+      [
+        "AAAABBBR",
+        50
+      ],
+      [
+        "AABBAAR",
         50
       ],
       [
@@ -2479,10 +2495,6 @@
         49
       ],
       [
-        "AABBAAR",
-        49
-      ],
-      [
         "DCCDDT",
         48
       ],
@@ -2491,19 +2503,15 @@
         47
       ],
       [
-        "BB",
-        47
-      ],
-      [
-        "CCDDDDT",
-        47
-      ],
-      [
         "ABCDDT",
         47
       ],
       [
         "BCDDS",
+        46
+      ],
+      [
+        "CCDDDDT",
         46
       ],
       [
@@ -2527,23 +2535,11 @@
         44
       ],
       [
-        "AAAABBBR",
-        44
-      ],
-      [
         "AAAAAQ",
         43
       ],
       [
-        "AAADP",
-        43
-      ],
-      [
         "AABDQ",
-        43
-      ],
-      [
-        "CDDT",
         43
       ],
       [
@@ -2560,6 +2556,14 @@
       ],
       [
         "ABDP",
+        42
+      ],
+      [
+        "AAADP",
+        42
+      ],
+      [
+        "CDDT",
         42
       ],
       [
@@ -2596,6 +2600,10 @@
       ],
       [
         "DDT",
+        39
+      ],
+      [
+        "ABDDDT",
         39
       ],
       [
@@ -2639,10 +2647,6 @@
         36
       ],
       [
-        "BBBAR",
-        35
-      ],
-      [
         "AAAAABBR",
         35
       ],
@@ -2655,10 +2659,6 @@
         35
       ],
       [
-        "ABDDDT",
-        35
-      ],
-      [
         "BDDT",
         35
       ],
@@ -2668,6 +2668,10 @@
       ],
       [
         "CCBCR",
+        34
+      ],
+      [
+        "BBBAR",
         34
       ],
       [
@@ -2691,7 +2695,15 @@
         34
       ],
       [
+        "AAB",
+        34
+      ],
+      [
         "DCBAR",
+        33
+      ],
+      [
+        "DD",
         33
       ],
       [
@@ -2715,7 +2727,7 @@
         32
       ],
       [
-        "DD",
+        "BA",
         32
       ],
       [
@@ -2751,10 +2763,6 @@
         31
       ],
       [
-        "AAB",
-        31
-      ],
-      [
         "BBBCDDT",
         31
       ],
@@ -2768,10 +2776,6 @@
       ],
       [
         "CBBBBBBT",
-        30
-      ],
-      [
-        "BA",
         30
       ],
       [
@@ -2835,14 +2839,6 @@
         28
       ],
       [
-        "BC",
-        28
-      ],
-      [
-        "BCDDDT",
-        28
-      ],
-      [
         "AABCCR",
         28
       ],
@@ -2851,7 +2847,15 @@
         27
       ],
       [
+        "ABBBR",
+        27
+      ],
+      [
         "BADQ",
+        27
+      ],
+      [
+        "BC",
         27
       ],
       [
@@ -2860,6 +2864,10 @@
       ],
       [
         "DCR",
+        27
+      ],
+      [
+        "BCDDDT",
         27
       ],
       [
@@ -2884,6 +2892,10 @@
       ],
       [
         "BCCCBS",
+        26
+      ],
+      [
+        "AAAA",
         26
       ],
       [
@@ -2939,15 +2951,7 @@
         24
       ],
       [
-        "CCDS",
-        24
-      ],
-      [
         "CBACR",
-        24
-      ],
-      [
-        "ABBBR",
         24
       ],
       [
@@ -2967,10 +2971,6 @@
         24
       ],
       [
-        "AAAAABBQ",
-        24
-      ],
-      [
         "BBBCBBCT",
         24
       ],
@@ -2980,6 +2980,10 @@
       ],
       [
         "AAAAAABBR",
+        23
+      ],
+      [
+        "CDDDCT",
         23
       ],
       [
@@ -3027,8 +3031,12 @@
         22
       ],
       [
-        "CDDDCT",
+        "AAAAABBQ",
         22
+      ],
+      [
+        "CCDS",
+        21
       ],
       [
         "CDDDCDT",
@@ -3055,7 +3063,15 @@
         21
       ],
       [
-        "CB",
+        "ABDCR",
+        20
+      ],
+      [
+        "DCCDT",
+        20
+      ],
+      [
+        "DDCT",
         20
       ],
       [
@@ -3087,14 +3103,6 @@
         20
       ],
       [
-        "ABDCR",
-        19
-      ],
-      [
-        "DCCDT",
-        19
-      ],
-      [
         "CAABR",
         19
       ],
@@ -3124,6 +3132,10 @@
       ],
       [
         "ABDDR",
+        18
+      ],
+      [
+        "AAAABBQ",
         18
       ],
       [
@@ -3175,12 +3187,12 @@
         18
       ],
       [
-        "AAAA",
+        "ABBBBBBS",
         18
       ],
       [
-        "ABBBBBBS",
-        18
+        "CB",
+        17
       ],
       [
         "CDCAR",
@@ -3215,6 +3227,10 @@
         17
       ],
       [
+        "AABAAAR",
+        17
+      ],
+      [
         "BADDS",
         17
       ],
@@ -3227,7 +3243,7 @@
         17
       ],
       [
-        "AAAABBQ",
+        "CAAAR",
         16
       ],
       [
@@ -3251,15 +3267,15 @@
         16
       ],
       [
+        "CCC",
+        16
+      ],
+      [
         "AAAABDR",
         16
       ],
       [
         "AAABAAQ",
-        16
-      ],
-      [
-        "AAAABBAAR",
         16
       ],
       [
@@ -3303,11 +3319,19 @@
         15
       ],
       [
+        "BBB",
+        15
+      ],
+      [
         "DDDDCDDDT",
         15
       ],
       [
         "AAAAAABP",
+        15
+      ],
+      [
+        "AAAABBAAR",
         15
       ],
       [
@@ -3336,10 +3360,6 @@
       ],
       [
         "DDCCCT",
-        14
-      ],
-      [
-        "DDCT",
         14
       ],
       [
@@ -3380,10 +3400,6 @@
       ],
       [
         "ABDR",
-        14
-      ],
-      [
-        "BBB",
         14
       ],
       [
@@ -3459,16 +3475,16 @@
         13
       ],
       [
+        "AABBBAR",
+        13
+      ],
+      [
         "BAADDT",
         13
       ],
       [
         "BBBBBBR",
         13
-      ],
-      [
-        "CAAAR",
-        12
       ],
       [
         "AAAAACR",
@@ -3524,10 +3540,6 @@
       ],
       [
         "BABQ",
-        12
-      ],
-      [
-        "BBDS",
         12
       ],
       [
@@ -3607,6 +3619,10 @@
         11
       ],
       [
+        "DDCCDT",
+        11
+      ],
+      [
         "BBBBCDT",
         11
       ],
@@ -3623,11 +3639,11 @@
         11
       ],
       [
-        "AABAAAR",
+        "AAABBAR",
         11
       ],
       [
-        "AAABBAR",
+        "BBCDS",
         11
       ],
       [
@@ -3639,10 +3655,6 @@
         11
       ],
       [
-        "AAAABDS",
-        11
-      ],
-      [
         "AAAABCDT",
         11
       ],
@@ -3651,15 +3663,19 @@
         11
       ],
       [
+        "BBCDDDT",
+        11
+      ],
+      [
+        "ABCDT",
+        11
+      ],
+      [
         "CCDDCDDDDT",
         11
       ],
       [
         "ABBDR",
-        11
-      ],
-      [
-        "AAAAAAACR",
         11
       ],
       [
@@ -3699,10 +3715,6 @@
         10
       ],
       [
-        "DDCCDT",
-        10
-      ],
-      [
         "BABAQ",
         10
       ],
@@ -3711,11 +3723,11 @@
         10
       ],
       [
-        "AAABCDS",
+        "BBDS",
         10
       ],
       [
-        "BBCDS",
+        "AAABCDS",
         10
       ],
       [
@@ -3724,10 +3736,6 @@
       ],
       [
         "AABCDDT",
-        10
-      ],
-      [
-        "BBCDDDT",
         10
       ],
       [
@@ -3815,11 +3823,23 @@
         9
       ],
       [
+        "DCAAR",
+        9
+      ],
+      [
+        "DDBDT",
+        9
+      ],
+      [
         "CC",
         9
       ],
       [
         "CCD",
+        9
+      ],
+      [
+        "BBBDS",
         9
       ],
       [
@@ -3871,6 +3891,10 @@
         9
       ],
       [
+        "AAAAAACR",
+        9
+      ],
+      [
         "AABBCDS",
         9
       ],
@@ -3892,10 +3916,6 @@
       ],
       [
         "DCCBBAT",
-        8
-      ],
-      [
-        "BBC",
         8
       ],
       [
@@ -3931,10 +3951,6 @@
         8
       ],
       [
-        "DDBDT",
-        8
-      ],
-      [
         "BCCAR",
         8
       ],
@@ -3951,7 +3967,15 @@
         8
       ],
       [
+        "AC",
+        8
+      ],
+      [
         "BCABR",
+        8
+      ],
+      [
+        "BAABR",
         8
       ],
       [
@@ -3987,7 +4011,7 @@
         8
       ],
       [
-        "ABCDT",
+        "CBCCDT",
         8
       ],
       [
@@ -3995,15 +4019,11 @@
         8
       ],
       [
-        "AABBBAR",
-        8
-      ],
-      [
         "AAAABBABR",
         8
       ],
       [
-        "AABDCR",
+        "AAAAAAACR",
         8
       ],
       [
@@ -4048,10 +4068,6 @@
       ],
       [
         "AABAABR",
-        7
-      ],
-      [
-        "AC",
         7
       ],
       [
@@ -4103,6 +4119,10 @@
         7
       ],
       [
+        "AAAABDS",
+        7
+      ],
+      [
         "CDDDCDDDDT",
         7
       ],
@@ -4143,10 +4163,6 @@
         7
       ],
       [
-        "CBCCDT",
-        7
-      ],
-      [
         "CBBDDT",
         7
       ],
@@ -4164,6 +4180,10 @@
       ],
       [
         "CCDD",
+        7
+      ],
+      [
+        "AABDCR",
         7
       ],
       [
@@ -4243,10 +4263,6 @@
         6
       ],
       [
-        "DCAAR",
-        6
-      ],
-      [
         "DDBABCT",
         6
       ],
@@ -4256,10 +4272,6 @@
       ],
       [
         "AAADT",
-        6
-      ],
-      [
-        "AAABDT",
         6
       ],
       [
@@ -4307,7 +4319,7 @@
         6
       ],
       [
-        "AAAAABAR",
+        "BBC",
         6
       ],
       [
@@ -4339,10 +4351,6 @@
         6
       ],
       [
-        "AAAAAABBBR",
-        6
-      ],
-      [
         "CCDDCCDDT",
         6
       ],
@@ -4364,10 +4372,6 @@
       ],
       [
         "CCDDCS",
-        6
-      ],
-      [
-        "AAAABAAAR",
         6
       ],
       [
@@ -4411,15 +4415,15 @@
         6
       ],
       [
+        "ABB",
+        6
+      ],
+      [
         "CBAABDS",
         6
       ],
       [
         "BBBBBBBBCT",
-        6
-      ],
-      [
-        "AAAAAACR",
         6
       ],
       [
@@ -4551,11 +4555,11 @@
         5
       ],
       [
-        "DCBS",
+        "DCDDCDDT",
         5
       ],
       [
-        "DCDDCDDT",
+        "AAABDT",
         5
       ],
       [
@@ -4595,11 +4599,11 @@
         5
       ],
       [
-        "CCCDCS",
+        "AAAAABAR",
         5
       ],
       [
-        "AAAAB",
+        "CCCDCS",
         5
       ],
       [
@@ -4619,6 +4623,10 @@
         5
       ],
       [
+        "AAAABAR",
+        5
+      ],
+      [
         "BCDCDT",
         5
       ],
@@ -4627,7 +4635,7 @@
         5
       ],
       [
-        "AAAAABBCS",
+        "AABBCDCT",
         5
       ],
       [
@@ -4640,6 +4648,10 @@
       ],
       [
         "AACDAAR",
+        5
+      ],
+      [
+        "AAABCDR",
         5
       ],
       [
@@ -4671,10 +4683,6 @@
         5
       ],
       [
-        "BCC",
-        5
-      ],
-      [
         "BCCCCCCDT",
         5
       ],
@@ -4700,14 +4708,6 @@
       ],
       [
         "ABCDCCT",
-        5
-      ],
-      [
-        "ABB",
-        5
-      ],
-      [
-        "CCCD",
         5
       ],
       [
@@ -4799,6 +4799,10 @@
         4
       ],
       [
+        "DCBS",
+        4
+      ],
+      [
         "DDAAR",
         4
       ],
@@ -4820,6 +4824,10 @@
       ],
       [
         "AAABAQ",
+        4
+      ],
+      [
+        "DAAR",
         4
       ],
       [
@@ -4851,19 +4859,11 @@
         4
       ],
       [
-        "BAABR",
-        4
-      ],
-      [
         "CBABDS",
         4
       ],
       [
         "CAACR",
-        4
-      ],
-      [
-        "BAB",
         4
       ],
       [
@@ -4883,11 +4883,7 @@
         4
       ],
       [
-        "CCCCCDDDT",
-        4
-      ],
-      [
-        "ABCAAAR",
+        "AAAAB",
         4
       ],
       [
@@ -4903,10 +4899,6 @@
         4
       ],
       [
-        "AAAABBBAR",
-        4
-      ],
-      [
         "ABC",
         4
       ],
@@ -4915,11 +4907,7 @@
         4
       ],
       [
-        "AAAABAR",
-        4
-      ],
-      [
-        "AAABBCDCT",
+        "AAAAABBCS",
         4
       ],
       [
@@ -4932,10 +4920,6 @@
       ],
       [
         "CA",
-        4
-      ],
-      [
-        "AAAABCDR",
         4
       ],
       [
@@ -4967,7 +4951,7 @@
         4
       ],
       [
-        "ABBAABR",
+        "AAAABBCS",
         4
       ],
       [
@@ -4976,10 +4960,6 @@
       ],
       [
         "CCCCCCBT",
-        4
-      ],
-      [
-        "BBBCDS",
         4
       ],
       [
@@ -5007,19 +4987,11 @@
         4
       ],
       [
-        "AAAABDDDT",
-        4
-      ],
-      [
         "AABDDS",
         4
       ],
       [
         "BAADQ",
-        4
-      ],
-      [
-        "BCDCCT",
         4
       ],
       [
@@ -5039,6 +5011,10 @@
         4
       ],
       [
+        "AAAAABDS",
+        4
+      ],
+      [
         "BBAABCR",
         4
       ],
@@ -5047,11 +5023,11 @@
         4
       ],
       [
-        "AAC",
+        "CBCCCCDDT",
         4
       ],
       [
-        "CBCCCCDDT",
+        "BCC",
         4
       ],
       [
@@ -5203,6 +5179,10 @@
         3
       ],
       [
+        "BDCBS",
+        3
+      ],
+      [
         "CCBQ",
         3
       ],
@@ -5231,10 +5211,6 @@
         3
       ],
       [
-        "ADAAR",
-        3
-      ],
-      [
         "ADDS",
         3
       ],
@@ -5256,10 +5232,6 @@
       ],
       [
         "CBADR",
-        3
-      ],
-      [
-        "CABBBR",
         3
       ],
       [
@@ -5292,6 +5264,10 @@
       ],
       [
         "BAAABBBCT",
+        3
+      ],
+      [
+        "BCCDS",
         3
       ],
       [
@@ -5363,7 +5339,7 @@
         3
       ],
       [
-        "CDD",
+        "CD",
         3
       ],
       [
@@ -5376,10 +5352,6 @@
       ],
       [
         "BCCDCDT",
-        3
-      ],
-      [
-        "AAAABBCS",
         3
       ],
       [
@@ -5399,6 +5371,10 @@
         3
       ],
       [
+        "BBBCDS",
+        3
+      ],
+      [
         "DBR",
         3
       ],
@@ -5407,11 +5383,11 @@
         3
       ],
       [
-        "AAABCDT",
+        "ABABCDT",
         3
       ],
       [
-        "ABABCDT",
+        "BAC",
         3
       ],
       [
@@ -5427,15 +5403,15 @@
         3
       ],
       [
+        "CCCD",
+        3
+      ],
+      [
         "CCDDBT",
         3
       ],
       [
         "BCBDT",
-        3
-      ],
-      [
-        "BBBBDS",
         3
       ],
       [
@@ -5448,22 +5424,6 @@
       ],
       [
         "BAAAAAABS",
-        3
-      ],
-      [
-        "AADCAAR",
-        3
-      ],
-      [
-        "CCCCB",
-        3
-      ],
-      [
-        "CCDT",
-        3
-      ],
-      [
-        "CCCCCCDDT",
         3
       ],
       [
@@ -5647,10 +5607,6 @@
         2
       ],
       [
-        "BBCC",
-        2
-      ],
-      [
         "CDBBBS",
         2
       ],
@@ -5704,10 +5660,6 @@
       ],
       [
         "DDAABBBBT",
-        2
-      ],
-      [
-        "CDCBS",
         2
       ],
       [
@@ -5787,11 +5739,11 @@
         2
       ],
       [
-        "DBBBDS",
+        "CBABAR",
         2
       ],
       [
-        "CBABAR",
+        "CDCCT",
         2
       ],
       [
@@ -5812,10 +5764,6 @@
       ],
       [
         "CAADR",
-        2
-      ],
-      [
-        "CBBBDS",
         2
       ],
       [
@@ -5891,10 +5839,6 @@
         2
       ],
       [
-        "DBDT",
-        2
-      ],
-      [
         "ADR",
         2
       ],
@@ -5951,6 +5895,10 @@
         2
       ],
       [
+        "BBCDCCT",
+        2
+      ],
+      [
         "ABBBCDCT",
         2
       ],
@@ -5971,6 +5919,14 @@
         2
       ],
       [
+        "ABDT",
+        2
+      ],
+      [
+        "ACBBBCDT",
+        2
+      ],
+      [
         "AAAABBCCT",
         2
       ],
@@ -5987,11 +5943,11 @@
         2
       ],
       [
-        "CCCDCCDT",
+        "BAAABBBS",
         2
       ],
       [
-        "BAAABBBS",
+        "BABAA",
         2
       ],
       [
@@ -6015,15 +5971,15 @@
         2
       ],
       [
-        "BAC",
-        2
-      ],
-      [
         "ABAACR",
         2
       ],
       [
         "BBBBBCCBT",
+        2
+      ],
+      [
+        "CCCCB",
         2
       ],
       [
@@ -6040,6 +5996,10 @@
       ],
       [
         "DBCDCT",
+        2
+      ],
+      [
+        "CCDT",
         2
       ],
       [
@@ -6296,6 +6256,10 @@
       ],
       [
         "BCCCCCBBDT",
+        1
+      ],
+      [
+        "BBCCB",
         1
       ],
       [
@@ -6591,10 +6555,6 @@
         1
       ],
       [
-        "DAB",
-        1
-      ],
-      [
         "CACAAAAAR",
         1
       ],
@@ -6651,10 +6611,6 @@
         1
       ],
       [
-        "CDCCT",
-        1
-      ],
-      [
         "BBDBBBS",
         1
       ],
@@ -6688,10 +6644,6 @@
       ],
       [
         "CCACR",
-        1
-      ],
-      [
-        "DAAR",
         1
       ],
       [
@@ -7123,18 +7075,6 @@
         1
       ],
       [
-        "AABACDDCT",
-        1
-      ],
-      [
-        "AABBBDDCT",
-        1
-      ],
-      [
-        "AABBCDCT",
-        1
-      ],
-      [
         "BBABCCCT",
         1
       ],
@@ -7151,7 +7091,7 @@
         1
       ],
       [
-        "CCBACDDCT",
+        "CCBAC",
         1
       ],
       [
@@ -7167,15 +7107,11 @@
         1
       ],
       [
-        "ABABBDDCT",
+        "ABBCBCDCCT",
         1
       ],
       [
-        "AAABBDDCT",
-        1
-      ],
-      [
-        "ABAACDDCT",
+        "ABAAC",
         1
       ],
       [
@@ -7184,10 +7120,6 @@
       ],
       [
         "BBBCBCBBT",
-        1
-      ],
-      [
-        "ABDT",
         1
       ],
       [
@@ -7428,6 +7360,10 @@
       ],
       [
         "CAACCDT",
+        1
+      ],
+      [
+        "DBDT",
         1
       ],
       [
@@ -7675,13 +7611,13 @@
         1
       ]
     ],
-    "strings_segmented": 966,
+    "strings_segmented": 984,
     "feature_consistency": [
       {
         "morpheme": "AAAA",
-        "n": 3150,
+        "n": 3151,
         "tempo_mean": 1.466,
-        "tempo_std": 0.901,
+        "tempo_std": 0.902,
         "rubato_counts": {
           "/": 34,
           "-": 399,
@@ -7727,9 +7663,9 @@
       },
       {
         "morpheme": "DD",
-        "n": 1065,
-        "tempo_mean": 3.545,
-        "tempo_std": 0.988,
+        "n": 1061,
+        "tempo_mean": 3.54,
+        "tempo_std": 0.987,
         "rubato_counts": {
           "/": 2,
           "-": 5,
@@ -7792,8 +7728,8 @@
       },
       {
         "morpheme": "CCDD",
-        "n": 787,
-        "tempo_mean": 4.4,
+        "n": 783,
+        "tempo_mean": 4.397,
         "tempo_std": 0.716,
         "rubato_counts": null,
         "rubato_n": 0,
@@ -7814,9 +7750,9 @@
       },
       {
         "morpheme": "CB",
-        "n": 753,
-        "tempo_mean": 2.008,
-        "tempo_std": 1.488,
+        "n": 749,
+        "tempo_mean": 1.992,
+        "tempo_std": 1.476,
         "rubato_counts": {
           "/": 3,
           "\\": 3,
@@ -7853,15 +7789,15 @@
       },
       {
         "morpheme": "CC",
-        "n": 655,
-        "tempo_mean": 2.519,
-        "tempo_std": 1.292,
+        "n": 648,
+        "tempo_mean": 2.495,
+        "tempo_std": 1.278,
         "rubato_counts": {
           "/": 2,
           "-": 1
         },
         "rubato_n": 3,
-        "ornament_rate": 0.462
+        "ornament_rate": 0.44
       },
       {
         "morpheme": "BBCC",
@@ -7874,22 +7810,22 @@
       },
       {
         "morpheme": "DB",
-        "n": 598,
-        "tempo_mean": 2.5,
-        "tempo_std": 1.265,
+        "n": 601,
+        "tempo_mean": 2.509,
+        "tempo_std": 1.269,
         "rubato_counts": {
           "-": 5,
           "/": 3,
           "\\": 2
         },
         "rubato_n": 10,
-        "ornament_rate": 0.254
+        "ornament_rate": 0.277
       },
       {
         "morpheme": "DC",
-        "n": 534,
+        "n": 533,
         "tempo_mean": 3.152,
-        "tempo_std": 1.287,
+        "tempo_std": 1.288,
         "rubato_counts": {
           "\\": 2,
           "/": 3,
@@ -7913,9 +7849,9 @@
       },
       {
         "morpheme": "CDD",
-        "n": 473,
-        "tempo_mean": 3.909,
-        "tempo_std": 0.774,
+        "n": 477,
+        "tempo_mean": 3.916,
+        "tempo_std": 0.775,
         "rubato_counts": {
           "/": 4,
           "\\": 3,
@@ -7999,9 +7935,9 @@
       },
       {
         "morpheme": "CDDD",
-        "n": 376,
+        "n": 377,
         "tempo_mean": 4.798,
-        "tempo_std": 0.402,
+        "tempo_std": 0.401,
         "rubato_counts": null,
         "rubato_n": 0,
         "ornament_rate": 0.0
@@ -8032,9 +7968,9 @@
       },
       {
         "morpheme": "AAA",
-        "n": 335,
-        "tempo_mean": 1.675,
-        "tempo_std": 1.226,
+        "n": 339,
+        "tempo_mean": 1.711,
+        "tempo_std": 1.264,
         "rubato_counts": {
           "-": 2,
           "\\": 1
@@ -9095,7 +9031,7 @@
   },
   "optics_tension": {
     "ici_morphemes_within_one_type": 4,
-    "ici_morphemes_spanning_types": 148,
+    "ici_morphemes_spanning_types": 147,
     "avg_purity_top20": 0.703,
     "interpretation": "High purity \u2192 morphemes \u2248 existing type boundaries (OPTICS reinforced). Low purity + spanning morphemes \u2192 ICI sub-patterns cut across OPTICS types (suggests compositional structure OPTICS conflates)."
   }

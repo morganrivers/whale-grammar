@@ -1,0 +1,243 @@
+{
+  "summary": {
+    "compound_tfm_k8": {
+      "ici_bpt_mean": 8.740921115951586,
+      "ici_bpt_std": 0.27569610916473486,
+      "exact_match": 0.020277165327638798,
+      "symbol_acc": 0.20300074641536608,
+      "norm_edit": 0.7568610016957658,
+      "n_folds": 5
+    },
+    "morpheme_tfm_k8": {
+      "ici_bpt_mean": 6.816872693343944,
+      "ici_bpt_std": 0.3588495925825382,
+      "exact_match": 0.19955820367538785,
+      "symbol_acc": 0.46542760472773503,
+      "norm_edit": 0.4373705680904535,
+      "n_folds": 5
+    },
+    "compound_markov1": {
+      "ici_bpt_mean": 9.057756995264901,
+      "ici_bpt_std": 0.17338497603945296,
+      "exact_match": 0.017657811022468745,
+      "symbol_acc": 0.19906510375701875,
+      "norm_edit": 0.752058040610031,
+      "n_folds": 5
+    },
+    "morpheme_markov1": {
+      "ici_bpt_mean": 7.838467749534971,
+      "ici_bpt_std": 0.3001597683925938,
+      "exact_match": 0.19818433667023264,
+      "symbol_acc": 0.4623452751191139,
+      "norm_edit": 0.42609795634435954,
+      "n_folds": 5
+    }
+  },
+  "folds": [
+    {
+      "compound_tfm_k8": {
+        "ici_bpt": 8.626565157559455,
+        "n_valid": 2777,
+        "exact_match": 0.05905653583003241,
+        "symbol_acc": 0.16429126032911393,
+        "norm_edit": 0.8113718169697212,
+        "seconds": 1.1
+      },
+      "morpheme_tfm_k8": {
+        "ici_bpt": 7.274294134552719,
+        "n_valid": 2777,
+        "exact_match": 0.22146200936262153,
+        "symbol_acc": 0.48012030913541914,
+        "norm_edit": 0.42285748471405127,
+        "seconds": 91.1
+      },
+      "compound_markov1": {
+        "ici_bpt": 8.879024380849431,
+        "n_valid": 2777,
+        "exact_match": 0.04861361181130717,
+        "symbol_acc": 0.1616911963839786,
+        "norm_edit": 0.8040087644543494,
+        "seconds": 0.9
+      },
+      "morpheme_markov1": {
+        "ici_bpt": 7.942705894628238,
+        "n_valid": 2777,
+        "exact_match": 0.21498019445444724,
+        "symbol_acc": 0.48677746772447844,
+        "norm_edit": 0.39947299961622457,
+        "seconds": 0.1
+      },
+      "_meta": {
+        "fold": 0,
+        "n_clean_train": 171,
+        "n_hersh": 251,
+        "n_val": 18,
+        "n_test": 48
+      }
+    },
+    {
+      "compound_tfm_k8": {
+        "ici_bpt": 8.453177326424468,
+        "n_valid": 1465,
+        "exact_match": 0.008191126279863481,
+        "symbol_acc": 0.22896017967714533,
+        "norm_edit": 0.7274788757783937,
+        "seconds": 0.7
+      },
+      "morpheme_tfm_k8": {
+        "ici_bpt": 6.956541380337074,
+        "n_valid": 1465,
+        "exact_match": 0.17542662116040955,
+        "symbol_acc": 0.43908749456072765,
+        "norm_edit": 0.4586390749284205,
+        "seconds": 80.7
+      },
+      "compound_markov1": {
+        "ici_bpt": 8.93627469271095,
+        "n_valid": 1465,
+        "exact_match": 0.006825938566552901,
+        "symbol_acc": 0.22253565489084584,
+        "norm_edit": 0.723908901056481,
+        "seconds": 0.6
+      },
+      "morpheme_markov1": {
+        "ici_bpt": 8.009879728367293,
+        "n_valid": 1465,
+        "exact_match": 0.1993174061433447,
+        "symbol_acc": 0.4628573977219489,
+        "norm_edit": 0.4184630662458434,
+        "seconds": 0.0
+      },
+      "_meta": {
+        "fold": 1,
+        "n_clean_train": 171,
+        "n_hersh": 251,
+        "n_val": 18,
+        "n_test": 48
+      }
+    },
+    {
+      "compound_tfm_k8": {
+        "ici_bpt": 9.224664062956856,
+        "n_valid": 6560,
+        "exact_match": 0.012957317073170731,
+        "symbol_acc": 0.13783687814556717,
+        "norm_edit": 0.8244017034794474,
+        "seconds": 2.0
+      },
+      "morpheme_tfm_k8": {
+        "ici_bpt": 6.237373996682738,
+        "n_valid": 6560,
+        "exact_match": 0.2184451219512195,
+        "symbol_acc": 0.4760130494505494,
+        "norm_edit": 0.4360546419490013,
+        "seconds": 87.8
+      },
+      "compound_markov1": {
+        "ici_bpt": 9.326499369620127,
+        "n_valid": 6560,
+        "exact_match": 0.012957317073170731,
+        "symbol_acc": 0.1371656350086228,
+        "norm_edit": 0.824389824267873,
+        "seconds": 2.0
+      },
+      "morpheme_markov1": {
+        "ici_bpt": 7.244536866321784,
+        "n_valid": 6560,
+        "exact_match": 0.2097560975609756,
+        "symbol_acc": 0.4396858007338191,
+        "norm_edit": 0.47134920709835204,
+        "seconds": 0.1
+      },
+      "_meta": {
+        "fold": 2,
+        "n_clean_train": 171,
+        "n_hersh": 251,
+        "n_val": 19,
+        "n_test": 47
+      }
+    },
+    {
+      "compound_tfm_k8": {
+        "ici_bpt": 8.547083333186322,
+        "n_valid": 776,
+        "exact_match": 0.00902061855670103,
+        "symbol_acc": 0.16059720058533133,
+        "norm_edit": 0.8054302961492734,
+        "seconds": 0.4
+      },
+      "morpheme_tfm_k8": {
+        "ici_bpt": 7.007011595998228,
+        "n_valid": 776,
+        "exact_match": 0.22938144329896906,
+        "symbol_acc": 0.45539760636511856,
+        "norm_edit": 0.4483197590635751,
+        "seconds": 78.3
+      },
+      "compound_markov1": {
+        "ici_bpt": 8.949213887654935,
+        "n_valid": 776,
+        "exact_match": 0.007731958762886598,
+        "symbol_acc": 0.16454035079136817,
+        "norm_edit": 0.7879288685962994,
+        "seconds": 0.3
+      },
+      "morpheme_markov1": {
+        "ici_bpt": 7.939184843893538,
+        "n_valid": 776,
+        "exact_match": 0.2345360824742268,
+        "symbol_acc": 0.465834776771429,
+        "norm_edit": 0.42010017130741545,
+        "seconds": 0.0
+      },
+      "_meta": {
+        "fold": 3,
+        "n_clean_train": 171,
+        "n_hersh": 251,
+        "n_val": 19,
+        "n_test": 47
+      }
+    },
+    {
+      "compound_tfm_k8": {
+        "ici_bpt": 8.853115699630836,
+        "n_valid": 1398,
+        "exact_match": 0.012160228898426323,
+        "symbol_acc": 0.32331821333967253,
+        "norm_edit": 0.615622316101993,
+        "seconds": 0.6
+      },
+      "morpheme_tfm_k8": {
+        "ici_bpt": 6.6091423591489615,
+        "n_valid": 1398,
+        "exact_match": 0.1530758226037196,
+        "symbol_acc": 0.4765195641268603,
+        "norm_edit": 0.42098187979721946,
+        "seconds": 73.7
+      },
+      "compound_markov1": {
+        "ici_bpt": 9.19777264548907,
+        "n_valid": 1398,
+        "exact_match": 0.012160228898426323,
+        "symbol_acc": 0.3093926817102783,
+        "norm_edit": 0.6200538446751525,
+        "seconds": 0.5
+      },
+      "morpheme_markov1": {
+        "ici_bpt": 8.056031414464002,
+        "n_valid": 1398,
+        "exact_match": 0.1323319027181688,
+        "symbol_acc": 0.45657093264389403,
+        "norm_edit": 0.42110433745396225,
+        "seconds": 0.0
+      },
+      "_meta": {
+        "fold": 4,
+        "n_clean_train": 171,
+        "n_hersh": 251,
+        "n_val": 19,
+        "n_test": 47
+      }
+    }
+  ]
+}

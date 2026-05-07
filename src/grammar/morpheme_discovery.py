@@ -110,8 +110,11 @@ def build_ici_corpus(df, edges, augment_tempo=False, min_len=2):
     return counts
 
 
-def run_morfessor(word_counts):
-    """Fit Morfessor Baseline, return (model, {word: [morpheme_list]})."""
+def run_morfessor(word_counts, save_path: Path | None = None):
+    """Fit Morfessor Baseline, return (model, {word: [morpheme_list]}).
+
+    If save_path is given, the trained model is persisted there as a binary file.
+    """
     model = morfessor.BaselineModel()
     data = [(cnt, w) for w, cnt in word_counts.items() if len(w) >= 1]
     model.load_data(data)
@@ -120,6 +123,9 @@ def run_morfessor(word_counts):
     for w in word_counts:
         morphs, _ = model.viterbi_segment(w)
         segs[w] = morphs
+    if save_path is not None:
+        save_path.parent.mkdir(parents=True, exist_ok=True)
+        morfessor.MorfessorIO().write_binary_model_file(str(save_path), model)
     return model, segs
 
 
@@ -444,7 +450,9 @@ def main():
             word_to_rc[s].append(int(row["rhythm_class"]))
 
     print("  Training Morfessor (Track 1)...")
-    model_ici, segs_ici = run_morfessor(ici_corpus)
+    morfessor_save = OUT_DIR / f"morfessor_n{N_BINS}.bin"
+    model_ici, segs_ici = run_morfessor(ici_corpus, save_path=morfessor_save)
+    print(f"  Morfessor model saved to {morfessor_save}")
     inv_ici = morpheme_inventory(ici_corpus, segs_ici)
 
     n_segmented = sum(1 for v in segs_ici.values() if len(v) > 1)

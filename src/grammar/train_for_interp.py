@@ -67,6 +67,11 @@ from torch import nn
 from src.grammar.dt_buckets import dt_to_bucket, scheme_for
 from src.grammar.m7_hooked import N_CTX, make_m7_config, make_m7_hooked
 from src.grammar.whale_compound import load_compound_whale
+from src.grammar.whale_morpheme_tokeniser import (
+    MorphemeConversation,
+    load_ici_string_whale,
+    load_morpheme_seq_whale,
+)
 
 ROOT = Path(__file__).resolve().parents[2]
 WHALE_CSV = ROOT / "data" / "classified" / "whale_dialogues.csv"
@@ -136,20 +141,65 @@ def _load_index_vocab(index_path: Path, d_vocab: int) -> list[str]:
     return vocab
 
 
-def load_corpus(source: str, n_ctx: int = N_CTX) -> Corpus:
+def _load_morpheme_seq_corpus(n_ctx: int) -> Corpus:
+    """Build a Corpus from morpheme sub-tokenised whale sequences.
+
+    Each coda expands to its Morfessor morpheme tokens.  DT bucket, time,
+    and speaker for every morpheme token within a coda are copied from the
+    coda's own values (first-token repeat).
+    """
+    morph_convs, decoder = load_morpheme_seq_whale(WHALE_CSV)
+    convs: list[Conversation] = []
+    for mc in morph_convs:
+        if len(mc.tokens) < n_ctx + 1:
+            continue
+        # Expand per-coda metadata to per-morpheme-token lists.
+        times_exp: list[float] = []
+        speakers_exp: list[str] = []
+        n_codas = len(mc.coda_boundaries)
+        for ci, start in enumerate(mc.coda_boundaries):
+            end = mc.coda_boundaries[ci + 1] if ci + 1 < n_codas else len(mc.tokens)
+            n_morphs = end - start
+            times_exp.extend([mc.times[ci]] * n_morphs)
+            speakers_exp.extend([mc.speakers[ci]] * n_morphs)
+        convs.append(Conversation(
+            seq_id=mc.seq_id,
+            tokens=mc.tokens,
+            dt_buckets=mc.dt_buckets,
+            times=times_exp,
+            speakers=speakers_exp,
+        ))
+    d_vocab = max(decoder) + 1
+    vocab = [decoder.get(i, f"<{i}>") for i in range(d_vocab)]
+    scheme = scheme_for("whale")
+    return Corpus(
+        conversations=convs,
+        vocab=vocab,
+        source="whale",
+        dt_scheme_name=scheme.name,
+        n_dt_buckets=scheme.n_buckets,
+    )
+
+
+def load_corpus(source: str, n_ctx: int = N_CTX,
+                tokenisation: str = "compound") -> Corpus:
     """Load the per-source dialogues CSV and bin its TimeDelta channel.
 
-    For whale we *replace* the rhythm-only `Coda` column with the
-    compound (rhythm × tempo_bin × orn × rubato) token id from
-    `whale_compound.load_compound_whale`, which expands V from 131 →
-    ~467 attested combinations. This matches the vocabulary that the
-    parallel-session continuations script and the side-by-side
-    benchmark (`outputs/grammar/childes_vs_whale.md`) use, so
-    interpretability views describe the same model.
+    For whale the tokenisation argument selects the vocabulary:
+      'compound'     — rhythm × tempo_bin × orn × rubato (~467 types)
+      'ici_string'   — ICI symbol string per coda (~1 916 types at N_BINS=4)
+      'morpheme_seq' — Morfessor sub-units; sequences expand beyond one
+                       token per coda; returned as a separate Corpus via
+                       _load_morpheme_seq_corpus().
     """
     whale_decoder: dict[int, str] | None = None
     if source == "whale":
-        df, whale_decoder = load_compound_whale(WHALE_CSV)
+        if tokenisation == "ici_string":
+            df, whale_decoder = load_ici_string_whale(WHALE_CSV)
+        elif tokenisation == "morpheme_seq":
+            return _load_morpheme_seq_corpus(n_ctx)
+        else:
+            df, whale_decoder = load_compound_whale(WHALE_CSV)
     elif source == "childes":
         df = pd.read_csv(CHILDES_CSV)
     elif source == "multilang":
@@ -515,6 +565,13 @@ def main(argv: list[str] | None = None) -> None:
                    help="`compare` runs both mixed-baseline and curriculum "
                         "side-by-side and reports the held-out gap. `mixed` / "
                         "`curriculum` runs only one.")
+    p.add_argument("--tokenisation",
+                   choices=["compound", "ici_string", "morpheme_seq"],
+                   default="compound",
+                   help="Token vocabulary for whale source: "
+                        "'compound' (default, rhythm×tempo×orn×rubato), "
+                        "'ici_string' (ICI symbol string per coda), "
+                        "'morpheme_seq' (Morfessor sub-units, sequence expansion).")
     p.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     args = p.parse_args(argv)
 
@@ -522,8 +579,10 @@ def main(argv: list[str] | None = None) -> None:
     torch.manual_seed(args.seed)
     np.random.seed(args.seed)
 
-    corpus = load_corpus(args.source, n_ctx=args.n_ctx)
-    print(f"loaded {args.source}: {len(corpus.conversations)} conversations, "
+    tok = getattr(args, "tokenisation", "compound")
+    corpus = load_corpus(args.source, n_ctx=args.n_ctx, tokenisation=tok)
+    print(f"loaded {args.source} (tokenisation={tok}): "
+          f"{len(corpus.conversations)} conversations, "
           f"V={len(corpus.vocab)}, dt scheme={corpus.dt_scheme_name} "
           f"({corpus.n_dt_buckets} buckets), K={args.n_ctx}")
 
@@ -645,8 +704,9 @@ def main(argv: list[str] | None = None) -> None:
         for ln in log[-4:]:
             print(ln)
         results["mixed"] = final
-        suffix = "_baseline" if do_curr else ""
-        out_dir = CKPT_DIR / f"{args.source}{suffix}"
+        tok_sfx = "" if tok == "compound" else f"_{tok}"
+        baseline_sfx = "_baseline" if do_curr else ""
+        out_dir = CKPT_DIR / f"{args.source}{tok_sfx}{baseline_sfx}"
         _save_checkpoint(out_dir, m, dh, corpus, args, final, seed_idx, log, n_params)
         print(f"wrote mixed checkpoint to {out_dir}/")
 
@@ -684,9 +744,11 @@ def main(argv: list[str] | None = None) -> None:
         for ln in log[-4:]:
             print(ln)
         results["curriculum"] = final
-        # Curriculum is the new default checkpoint at the canonical path
-        # (predict_kfold and interp_compare keep working unchanged).
-        out_dir = CKPT_DIR / args.source
+        tok_sfx = "" if tok == "compound" else f"_{tok}"
+        # Curriculum is the new default checkpoint. For compound (default)
+        # tokenisation this keeps the canonical path so predict_kfold and
+        # interp_compare work unchanged.
+        out_dir = CKPT_DIR / f"{args.source}{tok_sfx}"
         _save_checkpoint(out_dir, m, dh, corpus, args, final, seed_idx, log, n_params)
         print(f"wrote curriculum checkpoint to {out_dir}/")
 
