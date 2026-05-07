@@ -291,6 +291,66 @@ listening to the exemplars.
 
 ---
 
+## Sensitivity Analysis: Effect of N\_BINS on ICI Discretisation
+
+**Script:** `src/grammar/sensitivity_n_bins.py`  
+**Full results:** `outputs/morphemes/sensitivity_n_bins.json`
+
+The choice of 5 quantile bins (A–E) for ICI discretisation is a design parameter,
+not a principled derivation. To assess its impact, N\_BINS was varied across
+{2, 3, 4, 7, 10} and the full Track 1 pipeline (bin-edge computation, corpus
+construction, Morfessor MDL training, purity analysis) was re-run for each value.
+
+### Results
+
+| N\_BINS | Unique strings | MDL cost | n morphemes | % seg ≥2 | Mean morph len | Purity@20 | Spanning (n≥50) | Confined (n≥50) |
+|---------|---------------|----------|-------------|----------|---------------|-----------|----------------|----------------|
+| 2       | 327           | 189,748  | 44          | 86.5%    | 3.86          | 0.594     | 42             | 0              |
+| 3       | 1,030         | 231,740  | 161         | 84.4%    | 3.89          | 0.620     | 102            | 1              |
+| 4       | 1,916         | 261,888  | 374         | 80.5%    | 3.887         | **0.704** | 147            | 4              |
+| **5**   | **2,874**     | **~292k**| **566**     | **80.2%**| **3.9**       | **0.687** | **168**        | **8**          |
+| 7       | 4,822         | 330,196  | 1,130       | 76.8%    | 3.729         | 0.613     | 184            | 18             |
+| 10      | 7,716         | 381,842  | 1,905       | 75.7%    | 3.511         | 0.471     | 196            | 9              |
+
+*The N\_BINS=5 row is from the original run; all others are from the sensitivity sweep.*
+
+### Observations
+
+**MDL cost rises monotonically with N\_BINS.** More bins require more bits per
+symbol to encode the corpus, regardless of Morfessor's internal segmentation. This
+is an unavoidable information-theoretic consequence of a larger alphabet.
+
+**Purity peaks at N\_BINS=4, with N\_BINS=5 close behind.** The morphemes discovered
+at 4 bins have the highest average alignment with existing OPTICS rhythm classes
+(purity=0.704). Beyond 5 bins, purity falls steadily — reaching 0.471 at 10 bins.
+The finer distinctions add alphabet complexity faster than they add real acoustic
+signal that Morfessor can exploit to find cleaner boundaries.
+
+**N\_BINS=2 is too coarse.** Only 44 morphemes are discovered, and none are confined
+to a single rhythm class (conf\_n50=0): every discovered morpheme spans multiple
+OPTICS types. This level of discretisation erases the sub-coda distinctions that
+make morpheme analysis meaningful.
+
+**N\_BINS=7–10 over-splits.** At 10 bins, the top morphemes degrade to short digrams
+(`IJ`, `JJ`, `CC`) with low purity (0.471), and confined morphemes do not increase
+steadily — they dip at N\_BINS=10 relative to 7, suggesting the rare high-bin
+symbols become too sparse for reliable MDL segmentation.
+
+### Which N\_BINS to use
+
+Two objectives pull in opposite directions:
+
+- **Downstream compression (MDL):** lower is always better — N\_BINS=2 minimises
+  total description length.
+- **Alignment with rhythm\_class boundaries (purity):** peaks at N\_BINS=4.
+
+**N\_BINS=4 is the best single choice** if the goal is morphemes that respect the
+existing coda-type inventory. N\_BINS=5 (the original choice) is a close second and
+carries slightly more granularity at minimal purity cost (0.687 vs 0.704). Values
+below 4 discard real ICI structure; values above 5 introduce noise faster than signal.
+
+---
+
 ## Open Questions
 
 1. **Is EE a phoneme or an artefact?** The two-very-long-ICI pattern appears in

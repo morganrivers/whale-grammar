@@ -1,0 +1,272 @@
+[
+  {
+    "n_bins": 2,
+    "unique_strings": 327,
+    "total_codas": 37684,
+    "morfessor_mdl_cost": 189747.5,
+    "morpheme_inventory_size": 44,
+    "pct_segmented_2plus": 86.5,
+    "mean_morpheme_len": 3.86,
+    "avg_purity_top20": 0.594,
+    "n_spanning_morphemes_n50": 42,
+    "n_confined_morphemes_n50": 0,
+    "top10_morphemes": [
+      [
+        "BBBB",
+        5704
+      ],
+      [
+        "AAAA",
+        5414
+      ],
+      [
+        "BBB",
+        2511
+      ],
+      [
+        "BBAA",
+        2387
+      ],
+      [
+        "ABBB",
+        2094
+      ],
+      [
+        "BB",
+        2068
+      ],
+      [
+        "BAAA",
+        1945
+      ],
+      [
+        "BA",
+        1747
+      ],
+      [
+        "AA",
+        1608
+      ],
+      [
+        "AABB",
+        1386
+      ]
+    ]
+  },
+  {
+    "n_bins": 3,
+    "unique_strings": 1030,
+    "total_codas": 37684,
+    "morfessor_mdl_cost": 231739.9,
+    "morpheme_inventory_size": 161,
+    "pct_segmented_2plus": 84.4,
+    "mean_morpheme_len": 3.89,
+    "avg_purity_top20": 0.62,
+    "n_spanning_morphemes_n50": 102,
+    "n_confined_morphemes_n50": 1,
+    "top10_morphemes": [
+      [
+        "AAAA",
+        3740
+      ],
+      [
+        "CCCC",
+        2688
+      ],
+      [
+        "CCBB",
+        2384
+      ],
+      [
+        "ABBB",
+        1383
+      ],
+      [
+        "BBBB",
+        1329
+      ],
+      [
+        "CC",
+        1244
+      ],
+      [
+        "BB",
+        1224
+      ],
+      [
+        "CCC",
+        1168
+      ],
+      [
+        "CB",
+        1111
+      ],
+      [
+        "BA",
+        1065
+      ]
+    ]
+  },
+  {
+    "n_bins": 4,
+    "unique_strings": 1916,
+    "total_codas": 37684,
+    "morfessor_mdl_cost": 261888.3,
+    "morpheme_inventory_size": 374,
+    "pct_segmented_2plus": 80.5,
+    "mean_morpheme_len": 3.887,
+    "avg_purity_top20": 0.704,
+    "n_spanning_morphemes_n50": 147,
+    "n_confined_morphemes_n50": 4,
+    "top10_morphemes": [
+      [
+        "AAAA",
+        3151
+      ],
+      [
+        "DDCC",
+        1339
+      ],
+      [
+        "BCCC",
+        1292
+      ],
+      [
+        "DDDD",
+        1152
+      ],
+      [
+        "DD",
+        1065
+      ],
+      [
+        "BB",
+        998
+      ],
+      [
+        "BBBB",
+        839
+      ],
+      [
+        "DDD",
+        833
+      ],
+      [
+        "CBBB",
+        807
+      ],
+      [
+        "CCDD",
+        783
+      ]
+    ]
+  },
+  {
+    "n_bins": 7,
+    "unique_strings": 4822,
+    "total_codas": 37684,
+    "morfessor_mdl_cost": 330196.0,
+    "morpheme_inventory_size": 1130,
+    "pct_segmented_2plus": 76.8,
+    "mean_morpheme_len": 3.729,
+    "avg_purity_top20": 0.613,
+    "n_spanning_morphemes_n50": 184,
+    "n_confined_morphemes_n50": 18,
+    "top10_morphemes": [
+      [
+        "AAAA",
+        855
+      ],
+      [
+        "BAAA",
+        787
+      ],
+      [
+        "GG",
+        635
+      ],
+      [
+        "BBBB",
+        609
+      ],
+      [
+        "FG",
+        591
+      ],
+      [
+        "FFGG",
+        557
+      ],
+      [
+        "GGFF",
+        470
+      ],
+      [
+        "GGG",
+        457
+      ],
+      [
+        "CDDD",
+        428
+      ],
+      [
+        "GGEE",
+        422
+      ]
+    ]
+  },
+  {
+    "n_bins": 10,
+    "unique_strings": 7716,
+    "total_codas": 37684,
+    "morfessor_mdl_cost": 381841.7,
+    "morpheme_inventory_size": 1905,
+    "pct_segmented_2plus": 75.7,
+    "mean_morpheme_len": 3.511,
+    "avg_purity_top20": 0.471,
+    "n_spanning_morphemes_n50": 196,
+    "n_confined_morphemes_n50": 9,
+    "top10_morphemes": [
+      [
+        "BBAA",
+        658
+      ],
+      [
+        "IJ",
+        653
+      ],
+      [
+        "CC",
+        542
+      ],
+      [
+        "JJ",
+        503
+      ],
+      [
+        "DC",
+        373
+      ],
+      [
+        "BBBB",
+        361
+      ],
+      [
+        "JJHH",
+        355
+      ],
+      [
+        "GG",
+        342
+      ],
+      [
+        "FG",
+        330
+      ],
+      [
+        "IIJ",
+        319
+      ]
+    ]
+  }
+]
