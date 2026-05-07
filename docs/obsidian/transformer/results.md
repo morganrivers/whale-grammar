@@ -4,7 +4,7 @@ tags:
   - results
 summary: All bits-per-token tables in one place — generation 1 baselines, generation 2 ablation, generation 3 schema redesign
 created: 2026-05-06
-updated: 2026-05-06
+updated: 2026-05-07
 ---
 
 # Results
@@ -115,6 +115,86 @@ Whale is *more compressible* than CHILDES at this granularity, on the same 39k-t
 | M7 → S2 (KN+cache) | +0.14 | A recency cache on a 5-gram is most of M7's compression. |
 | R0 → R2 multi-channel multi-task | +0.117 | Adding speaker/sync/orn channels + aux losses *hurts*. |
 | whale (V=467) → CHILDES UK (V=1602) fraction-of-unigram | 0.691 / 0.876 | Whale at this granularity has more learnable structure than English at lemma granularity, normalized by entropy floor. |
+
+## Generation 4 — tiered split, compound vocab, K-context ablation (2026-05-07)
+
+The fold protocol changes here: KFold is over the **clean** tier only (sharma2024_dswp + sharma2025_birth); hersh2022_pacific is always added to the training pool, never tested. V_coda = 131, V_token = 467 (compound rhythm·tempo·orn·rubato), V_dt = 7. Source: `outputs/grammar/predict_results_joint_full.md`, `predict_results_k8.md`, `predict_results_k8_joint_ckpt.md`.
+
+### K=25 full sweep (tfm + h, coda + joint)
+
+| arch | target | loss_agg | params | coda bpt (↓) |
+|------|--------|----------|-------:|-------------:|
+| **tfm** | **coda** | **last** | **47,523** | **2.053 ± 0.554** |
+| h | coda | last | 118,787 | 2.069 ± 0.561 |
+| tfm | joint | last | 69,594 | 2.181 ± 0.706 |
+| h | joint | last | 162,586 | 2.471 ± 0.998 |
+| ref: KN 5-gram | coda | — | 0 | 2.268 ± 0.462 |
+| ref: Markov-1 | coda | — | 0 | 2.533 ± 0.413 |
+
+### K=8 vs K=25 ablation (tfm | coda | last)
+
+| K | coda_bpt (↓) | coda_acc |
+|---|-------------|---------|
+| **8** | **2.013 ± 0.534** | 0.692 |
+| 25 | 2.053 ± 0.554 | 0.697 |
+
+K=8 beats K=25 on every fold (Δ = −0.040 bpt). Shorter context wins on this corpus — likely reduced overfitting. The K=8 joint checkpoint (tfm | joint | last) gives **2.130 ± 0.665** coda_marg_bpt, beating KN5 (2.268) and all classical baselines.
+
+Reproduce: `python -m src.grammar.predict_full --k 8` / `--k 25`.
+
+## ICI-fidelity benchmark — morpheme vs compound tokenisation (2026-05-07)
+
+A different metric: instead of predicting rhythm class, predict the full **ICI string** (inter-click interval pattern within a coda) of the next coda. Metric = ici_bpt = −log₂ P(true ICI string | context). Secondary: exact match, per-symbol accuracy, normalised edit distance (lower = better).
+
+Morpheme model: MiniTfm 2L-4h-d64, trained fresh per fold on morpheme sequences (Morfessor segmentation of ICI strings, V=369). Compound model: K=8 joint checkpoint loaded, no retraining — ICI decoded via rhythm marginalisation over per-fold training ICI distribution.
+
+Source: `outputs/grammar/predict_results_ici_fidelity.md`.
+
+| model | ici_bpt (↓) | exact_match (↑) | symbol_acc (↑) | norm_edit (↓) |
+|-------|:----------:|:---------------:|:--------------:|:-------------:|
+| **morpheme_tfm_k8** | **6.817 ± 0.359** | **0.200** | **0.465** | **0.437** |
+| morpheme_markov1 | 7.838 ± 0.300 | 0.198 | 0.462 | 0.426 |
+| compound_tfm_k8 | 8.741 ± 0.276 | 0.020 | 0.203 | 0.757 |
+| compound_markov1 | 9.058 ± 0.173 | 0.018 | 0.199 | 0.752 |
+
+The morpheme Tfm wins by ~1.9 bpt over the compound Tfm on ICI prediction. The compound model's exact-match and symbol_acc collapse (0.020 / 0.203) because ICI decoding via rhythm marginalisation is very coarse. Morpheme tokenisation is substantially better for ICI-fidelity prediction.
+
+Reproduce: `python -m src.grammar.evaluate_ici_fidelity`.
+
+## ICI-timing benchmark — raw timing space, empirical bin means (2026-05-07)
+
+A cleaner evaluation in **raw seconds**, not the bucketed alphabet. Both models predict an ICI string; that string is decoded to continuous ICI values via **per-bin empirical means** computed from the training fold (not midpoints — bin D spans 0.27–1.54 s; its midpoint 0.91 s overestimates the empirical mean of 0.36 s by 2.5×). Decoded sequences are compared to true raw ICI values from the CSV.
+
+Source: `outputs/grammar/predict_results_ici_timing.md`. Reproduce: `python -m src.grammar.evaluate_ici_timing`.
+
+| metric | compound_tfm_k8 | morpheme_tfm_k8 | winner |
+|--------|:---------------:|:---------------:|--------|
+| n_click_err ↓ | 1.688 ± 0.341 | **1.095 ± 0.143** | morpheme |
+| nn_dist ↓ | **0.073 ± 0.008** | 0.096 ± 0.013 | compound |
+| scale_free_rmse ↓ | 0.164 ± 0.034 | **0.132 ± 0.025** | morpheme |
+| dtw_norm ↓ | 0.116 ± 0.008 | **0.069 ± 0.009** | morpheme |
+| pattern_corr ↑ | 0.109 ± 0.106 | **0.286 ± 0.034** | morpheme |
+
+Morpheme wins 4/5 metrics. Compound's sole advantage is `nn_dist` (absolute click placement): its MAP decode pulls a real ICI string from training data, so clicks land near a plausible coda. Morpheme decodes per-bin means independently per position, which can place clicks slightly off even when the pattern shape is correct.
+
+The previous apparent compound win on `dtw_norm` (before the empirical-mean fix) was entirely a bin D midpoint artefact.
+
+## No-hersh ablation — ICI-fidelity benchmark (2026-05-07)
+
+Same protocol as above but hersh2022_pacific is excluded from training entirely. The compound WhaleTfm is retrained from scratch per fold on clean-only data (same architecture, same hyperparameters). Morpheme tokenisation unchanged.
+
+Source: `outputs/grammar/predict_results_ici_fidelity_no_hersh.md`.
+
+| model | with-hersh ici_bpt | no-hersh ici_bpt | Δ | with-hersh norm_edit | no-hersh norm_edit | Δ |
+|-------|:-----------------:|:----------------:|:-:|:-------------------:|:-----------------:|:-:|
+| morpheme_tfm_k8 | **6.817 ± 0.359** | 7.185 ± 0.427 | +0.37 ↑worse | **0.437** | 0.457 | worse |
+| morpheme_markov1 | 7.838 ± 0.300 | 8.094 ± 0.256 | +0.26 ↑worse | **0.426** | 0.454 | worse |
+| compound_tfm_k8 | 8.741 ± 0.276 | **8.286 ± 0.211** | −0.46 ↓better | 0.757 | **0.727** | better |
+| compound_markov1 | 9.058 ± 0.173 | **8.538 ± 0.241** | −0.52 ↓better | 0.752 | **0.726** | better |
+
+Hersh data splits cleanly by tokenisation: it **helps morpheme models** (~0.37 bpt, more diverse morpheme sequences to learn from) and **hurts compound models** (~0.46–0.52 bpt, likely domain mismatch in the compound token vocabulary — hersh whales are Pacific, clean set is Caribbean/DSWP). Overall best model remains morpheme_tfm_k8 **with** hersh at 6.817 bpt.
+
+Reproduce: `python -m src.grammar.evaluate_ici_fidelity --no-hersh`.
 
 ## How to compare runs sanely
 
