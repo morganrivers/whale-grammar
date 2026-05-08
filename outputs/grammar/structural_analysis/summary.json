@@ -1,0 +1,95 @@
+{
+  "zipf": {
+    "whale_compound": {
+      "V": 467,
+      "N": 38840,
+      "alpha": 1.8726,
+      "R2": 0.9148
+    },
+    "morfessor_track1b": {
+      "V": 1438,
+      "N": 39197,
+      "alpha": 1.5414,
+      "R2": 0.9306
+    },
+    "morfessor_track1": {
+      "V": 372,
+      "N": 41683,
+      "alpha": 1.3927,
+      "R2": 0.8455
+    },
+    "mandarin_syllables": {
+      "V": 823,
+      "N": 39130,
+      "alpha": 1.5059,
+      "R2": 0.8817
+    }
+  },
+  "mi_decay": {
+    "Whale compound": {
+      "preferred": "power_law",
+      "power_law_alpha": 0.1107,
+      "power_law_R2": 0.968,
+      "exponential_lam": 0.0133,
+      "exponential_R2": 0.745
+    },
+    "Whale compound (shuffled)": {
+      "preferred": "exponential",
+      "power_law_alpha": 0.0079,
+      "power_law_R2": 0.6748,
+      "exponential_lam": 0.0011,
+      "exponential_R2": 0.7488
+    },
+    "Mandarin syllables": {
+      "preferred": "power_law",
+      "power_law_alpha": 0.0905,
+      "power_law_R2": 0.4778,
+      "exponential_lam": 0.0076,
+      "exponential_R2": 0.1777
+    }
+  },
+  "repair": {
+    "Whale compound": {
+      "rounds": 80,
+      "final_ratio": 0.7309
+    },
+    "Whale compound (shuffled)": {
+      "rounds": 80,
+      "final_ratio": 0.804
+    },
+    "Mandarin syllables": {
+      "rounds": 80,
+      "final_ratio": 0.8591
+    }
+  },
+  "pause_asymmetry": {
+    "missing": {
+      "jsd": 0.0,
+      "n": 29077
+    },
+    "\u0394t<0.42s": {
+      "jsd": 0.4476,
+      "n": 22
+    },
+    "\u0394t~0.8s": {
+      "jsd": 0.1431,
+      "n": 581
+    },
+    "\u0394t~1.8s": {
+      "jsd": 0.0904,
+      "n": 1054
+    },
+    "\u0394t~3.2s": {
+      "jsd": 0.0544,
+      "n": 1029
+    },
+    "\u0394t>4.0s": {
+      "jsd": 0.0324,
+      "n": 1381
+    },
+    "speaker\nswitch": {
+      "jsd": 0.0117,
+      "n": 5208
+    }
+  }
+}
