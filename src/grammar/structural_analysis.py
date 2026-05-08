@@ -3,7 +3,8 @@ Structural analysis of whale coda sequences — no transformer required.
 
 Analyses:
   1. Zipf rank-frequency: compound tokens vs Morfessor morphemes vs Mandarin syllables
-  2. MI decay: power-law vs exponential fit, whale vs shuffled vs Mandarin
+     vs Bengalese finch birdsong (Koumura 2016)
+  2. MI decay: power-law vs exponential fit, whale vs shuffled vs Mandarin vs birdsong
   3. Re-Pair grammar compression depth
   4. Pause-context asymmetry (JSD by Δt bucket)
 
@@ -141,6 +142,30 @@ def load_mandarin_sequences(
     return seqs, Counter(flat)
 
 
+def load_birdsong_koumura() -> tuple[dict[str, list[str]], Counter]:
+    """Load Bengalese finch syllable sequences from the crowsetta-bundled
+    Koumura 2016 BirdsongRecognition example (one bird, 135 song bouts).
+
+    Each BirdsongRec sequence becomes one entry in the returned dict.
+    Syllable labels are integer codes 0-8 mapped to letter strings a-i so they
+    are human-readable alongside the letter-based Morfessor morphemes.
+
+    Returns ({seq_id: [syllable_str]}, Counter).
+    """
+    import crowsetta  # optional dep — only needed for birdsong analysis
+    bsr = crowsetta.example("Annotation.xml")
+    label_map = {lbl: chr(ord("a") + i) for i, lbl in enumerate(
+        sorted({s.label for seq in bsr.sequences for s in seq.syls})
+    )}
+    seqs: dict[str, list[str]] = {}
+    for i, seq in enumerate(bsr.sequences):
+        sid = f"koumura_bird0_bout{i:03d}"
+        seqs[sid] = [label_map[s.label] for s in seq.syls]
+
+    flat = [t for s in seqs.values() for t in s]
+    return seqs, Counter(flat)
+
+
 # ---------------------------------------------------------------------------
 # 1. Zipf analysis
 # ---------------------------------------------------------------------------
@@ -165,30 +190,35 @@ def plot_zipf(
     fits: list[dict],
     out_path: Path,
 ) -> None:
-    COLORS = ["#2166ac", "#b2182b", "#1b7837"]
-    MARKERS = ["o", "s", "^"]
+    """Plot Zipf rank-frequency.  Fits with V < 20 are shown as scatter only
+    (no power-law line) since a fit over fewer than 20 ranks is unreliable."""
+    COLORS  = ["#2166ac", "#b2182b", "#1b7837", "#d95f02"]
+    MARKERS = ["o", "s", "^", "D"]
 
     fig, ax = plt.subplots(figsize=(7, 5))
     for fit, color, marker in zip(fits, COLORS, MARKERS):
         ax.loglog(
             fit["ranks"], fit["freqs"],
-            marker, alpha=0.35, ms=3, color=color, rasterized=True,
+            marker, alpha=0.5, ms=4 if fit["V"] < 20 else 3,
+            color=color, rasterized=True,
         )
-        r_fit = np.array([1.0, float(fit["V"])])
-        f_fit = 10 ** (fit["intercept"] + fit["slope"] * np.log10(r_fit))
+        if fit["V"] >= 20:
+            r_fit = np.array([1.0, float(fit["V"])])
+            f_fit = 10 ** (fit["intercept"] + fit["slope"] * np.log10(r_fit))
+            suffix = f"  α={abs(fit['slope']):.2f}  R²={fit['r2']:.3f}"
+        else:
+            suffix = f"  V={fit['V']} (too few ranks for fit)"
         ax.loglog(
-            r_fit, f_fit, "-", color=color, lw=2.2,
-            label=(
-                f"{fit['label']}\n"
-                f"  α = {abs(fit['slope']):.2f}   "
-                f"R² = {fit['r2']:.3f}   V = {fit['V']:,}"
-            ),
+            [], [], "-", color=color, lw=2.2,
+            label=f"{fit['label']}\n  N={fit['N']:,}  V={fit['V']}{suffix}",
         )
+        if fit["V"] >= 20:
+            ax.loglog(r_fit, f_fit, "-", color=color, lw=2.2)
 
     ax.set_xlabel("Rank", fontsize=12)
     ax.set_ylabel("Frequency", fontsize=12)
     ax.set_title("Zipf rank–frequency distributions", fontsize=13, fontweight="bold")
-    ax.legend(fontsize=9, framealpha=0.9, loc="upper right")
+    ax.legend(fontsize=8.5, framealpha=0.9, loc="upper right")
     ax.grid(True, which="both", alpha=0.25)
     fig.tight_layout()
     fig.savefig(out_path, dpi=150)
@@ -283,11 +313,13 @@ def plot_mi_decay(
         "Whale compound": "#2166ac",
         "Whale compound (shuffled)": "#92c5de",
         "Mandarin syllables": "#b2182b",
+        "Bengalese finch (birdsong)": "#d95f02",
     }
     STYLES = {
         "Whale compound": ("-", "o"),
         "Whale compound (shuffled)": ("--", "x"),
         "Mandarin syllables": ("-", "s"),
+        "Bengalese finch (birdsong)": ("-", "D"),
     }
 
     fig, ax = plt.subplots(figsize=(7, 5))
@@ -366,11 +398,13 @@ def plot_repair(
         "Whale compound": "#2166ac",
         "Whale compound (shuffled)": "#92c5de",
         "Mandarin syllables": "#b2182b",
+        "Bengalese finch (birdsong)": "#d95f02",
     }
     STYLES = {
         "Whale compound": "-",
         "Whale compound (shuffled)": "--",
         "Mandarin syllables": "-",
+        "Bengalese finch (birdsong)": "-",
     }
 
     fig, ax = plt.subplots(figsize=(7, 5))
@@ -497,36 +531,50 @@ def plot_summary_panel(
     fig = plt.figure(figsize=(14, 10))
     gs = gridspec.GridSpec(2, 2, figure=fig, hspace=0.42, wspace=0.38)
 
-    COLORS_MAIN = ["#2166ac", "#b2182b", "#1b7837"]
+    COLORS_MAIN = ["#2166ac", "#b2182b", "#1b7837", "#d95f02"]
     COLORS_MI = {
         "Whale compound": "#2166ac",
         "Whale compound (shuffled)": "#92c5de",
         "Mandarin syllables": "#b2182b",
+        "Bengalese finch (birdsong)": "#d95f02",
     }
     STYLES_MI = {
         "Whale compound": ("-", "o"),
         "Whale compound (shuffled)": ("--", "x"),
         "Mandarin syllables": ("-", "s"),
+        "Bengalese finch (birdsong)": ("-", "D"),
     }
     COLORS_REPAIR = {
         "Whale compound": "#2166ac",
         "Whale compound (shuffled)": "#92c5de",
         "Mandarin syllables": "#b2182b",
+        "Bengalese finch (birdsong)": "#d95f02",
+    }
+    STYLES_RP = {
+        "Whale compound": "-",
+        "Whale compound (shuffled)": "--",
+        "Mandarin syllables": "-",
+        "Bengalese finch (birdsong)": "-",
     }
     CMAP_PAUSE = ["#d9d9d9","#fee090","#fdae61","#f46d43","#d73027","#a50026","#762a83"]
 
     # ── Panel A: Zipf ────────────────────────────────────────────────────────
     ax_z = fig.add_subplot(gs[0, 0])
-    for fit, color, marker in zip(zipf_fits, COLORS_MAIN, ["o", "s", "^"]):
-        ax_z.loglog(fit["ranks"], fit["freqs"], marker, alpha=0.3, ms=3, color=color, rasterized=True)
-        r2 = np.array([1.0, float(fit["V"])])
-        f2 = 10 ** (fit["intercept"] + fit["slope"] * np.log10(r2))
-        ax_z.loglog(r2, f2, "-", color=color, lw=2,
-                    label=f"{fit['label']}  α={abs(fit['slope']):.2f}")
+    for fit, color, marker in zip(zipf_fits, COLORS_MAIN, ["o", "s", "^", "D"]):
+        ax_z.loglog(fit["ranks"], fit["freqs"], marker, alpha=0.4,
+                    ms=5 if fit["V"] < 20 else 3, color=color, rasterized=True)
+        if fit["V"] >= 20:
+            r2 = np.array([1.0, float(fit["V"])])
+            f2 = 10 ** (fit["intercept"] + fit["slope"] * np.log10(r2))
+            ax_z.loglog(r2, f2, "-", color=color, lw=2,
+                        label=f"{fit['label']}  α={abs(fit['slope']):.2f}")
+        else:
+            ax_z.loglog([], [], color=color, lw=2,
+                        label=f"{fit['label']}  V={fit['V']} (no fit)")
     ax_z.set_xlabel("Rank", fontsize=10)
     ax_z.set_ylabel("Frequency", fontsize=10)
     ax_z.set_title("A  Zipf distributions", fontsize=11, fontweight="bold")
-    ax_z.legend(fontsize=8, framealpha=0.85)
+    ax_z.legend(fontsize=7.5, framealpha=0.85)
     ax_z.grid(True, which="both", alpha=0.2)
 
     # ── Panel B: MI decay ────────────────────────────────────────────────────
@@ -547,12 +595,11 @@ def plot_summary_panel(
     ax_mi.set_xlabel("Lag k (tokens)", fontsize=10)
     ax_mi.set_ylabel("MI  [bits]", fontsize=10)
     ax_mi.set_title("B  Mutual-information decay", fontsize=11, fontweight="bold")
-    ax_mi.legend(fontsize=8, framealpha=0.85)
+    ax_mi.legend(fontsize=7.5, framealpha=0.85)
     ax_mi.grid(True, alpha=0.2)
 
     # ── Panel C: Re-Pair ─────────────────────────────────────────────────────
     ax_rp = fig.add_subplot(gs[1, 0])
-    STYLES_RP = {"Whale compound": "-", "Whale compound (shuffled)": "--", "Mandarin syllables": "-"}
     for label, ratios in repair_curves.items():
         if not ratios:
             continue
@@ -564,7 +611,7 @@ def plot_summary_panel(
     ax_rp.set_xlabel("Re-Pair rounds", fontsize=10)
     ax_rp.set_ylabel("Length / original", fontsize=10)
     ax_rp.set_title("C  Re-Pair grammar compression", fontsize=11, fontweight="bold")
-    ax_rp.legend(fontsize=8, framealpha=0.85)
+    ax_rp.legend(fontsize=7.5, framealpha=0.85)
     ax_rp.grid(True, alpha=0.2)
 
     # ── Panel D: Pause asymmetry ─────────────────────────────────────────────
@@ -614,22 +661,28 @@ def main() -> None:
     print("Loading Mandarin syllable sequences …")
     mand_seqs, mand_counts = load_mandarin_sequences(multilang_csv, multilang_idx)
 
+    print("Loading Bengalese finch birdsong (Koumura 2016, crowsetta example) …")
+    bird_seqs, bird_counts = load_birdsong_koumura()
+    print(f"  {len(bird_seqs)} bouts, {sum(len(s) for s in bird_seqs.values())} syllables, V={len(bird_counts)}")
+
     # ── 1. Zipf ───────────────────────────────────────────────────────────────
     print("\n[1] Zipf analysis")
     fit_compound = _zipf_fit(whale_counts, "Whale compound (Sharma)")
     fit_morph1b  = _zipf_fit(morph_counts_1b, "Whale Morfessor+tempo (track1b)")
     fit_morph1   = _zipf_fit(morph_counts_1, "Whale Morfessor ICI (track1)")
     fit_mand     = _zipf_fit(mand_counts, "Mandarin CHILDES syllables")
+    fit_bird     = _zipf_fit(bird_counts, "Bengalese finch (birdsong)")
 
-    for f in [fit_compound, fit_morph1, fit_morph1b, fit_mand]:
-        print(f"  {f['label']}: V={f['V']:,}  N={f['N']:,}  α={abs(f['slope']):.3f}  R²={f['r2']:.3f}")
+    for f in [fit_compound, fit_morph1, fit_morph1b, fit_mand, fit_bird]:
+        v_note = "  ← too few ranks for reliable fit" if f["V"] < 20 else ""
+        print(f"  {f['label']}: V={f['V']:,}  N={f['N']:,}  α={abs(f['slope']):.3f}  R²={f['r2']:.3f}{v_note}")
 
-    # primary Zipf plot: compound + both Morfessor tracks + Mandarin
-    plot_zipf([fit_compound, fit_morph1b, fit_mand], OUT / "zipf_comparison.png")
+    # primary Zipf plot: compound + Morfessor+tempo + Mandarin + birdsong
+    plot_zipf([fit_compound, fit_morph1b, fit_mand, fit_bird], OUT / "zipf_comparison.png")
 
-    # secondary: all four on one plot
-    plot_zipf([fit_compound, fit_morph1, fit_morph1b, fit_mand],
-              OUT / "zipf_all_four.png")
+    # secondary: all five
+    plot_zipf([fit_compound, fit_morph1, fit_morph1b, fit_mand, fit_bird],
+              OUT / "zipf_all_five.png")
 
     # ── 2. MI decay ───────────────────────────────────────────────────────────
     print("\n[2] MI decay")
@@ -639,6 +692,7 @@ def main() -> None:
     whale_int, _ = _to_int_seqs(whale_seqs)
     whale_shuf   = shuffle_seqs(whale_int)
     mand_int, _  = _to_int_seqs(mand_seqs)
+    bird_int, _  = _to_int_seqs(bird_seqs)
 
     print("  whale compound …")
     mi_whale = compute_mi_decay(whale_int, MAX_LAG)
@@ -646,11 +700,14 @@ def main() -> None:
     mi_shuf = compute_mi_decay(whale_shuf, MAX_LAG)
     print("  Mandarin …")
     mi_mand = compute_mi_decay(mand_int, MAX_LAG)
+    print("  Bengalese finch …")
+    mi_bird = compute_mi_decay(bird_int, MAX_LAG)
 
     mi_results = {
         "Whale compound": mi_whale,
         "Whale compound (shuffled)": mi_shuf,
         "Mandarin syllables": mi_mand,
+        "Bengalese finch (birdsong)": mi_bird,
     }
     mi_fits = {lbl: _fit_decay(lags, mi) for lbl, mi in mi_results.items()}
 
@@ -671,6 +728,7 @@ def main() -> None:
     flat_whale = [t for s in whale_int.values() for t in s]
     flat_shuf  = [t for s in whale_shuf.values() for t in s]
     flat_mand  = [t for s in mand_int.values() for t in s]
+    flat_bird  = [t for s in bird_int.values() for t in s]
 
     print("  whale compound …")
     rp_whale = repair_compress(flat_whale, n_rounds=80)
@@ -678,11 +736,14 @@ def main() -> None:
     rp_shuf = repair_compress(flat_shuf, n_rounds=80)
     print("  Mandarin …")
     rp_mand = repair_compress(flat_mand, n_rounds=80)
+    print("  Bengalese finch …")
+    rp_bird = repair_compress(flat_bird, n_rounds=80)
 
     repair_curves = {
         "Whale compound": rp_whale,
         "Whale compound (shuffled)": rp_shuf,
         "Mandarin syllables": rp_mand,
+        "Bengalese finch (birdsong)": rp_bird,
     }
     for lbl, r in repair_curves.items():
         if r:
@@ -701,7 +762,7 @@ def main() -> None:
     # ── Summary panel ─────────────────────────────────────────────────────────
     print("\n[5] Summary 4-panel figure")
     plot_summary_panel(
-        [fit_compound, fit_morph1b, fit_mand],
+        [fit_compound, fit_morph1b, fit_mand, fit_bird],
         mi_results, mi_fits, lags,
         repair_curves,
         p_buckets, p_jsds, p_ns,
@@ -718,10 +779,11 @@ def main() -> None:
 
     summary = {
         "zipf": {
-            "whale_compound":  {"V": fit_compound["V"], "N": fit_compound["N"], "alpha": round(abs(fit_compound["slope"]), 4), "R2": round(fit_compound["r2"], 4)},
-            "morfessor_track1b": {"V": fit_morph1b["V"], "N": fit_morph1b["N"], "alpha": round(abs(fit_morph1b["slope"]), 4), "R2": round(fit_morph1b["r2"], 4)},
-            "morfessor_track1": {"V": fit_morph1["V"], "N": fit_morph1["N"], "alpha": round(abs(fit_morph1["slope"]), 4), "R2": round(fit_morph1["r2"], 4)},
-            "mandarin_syllables": {"V": fit_mand["V"], "N": fit_mand["N"], "alpha": round(abs(fit_mand["slope"]), 4), "R2": round(fit_mand["r2"], 4)},
+            "whale_compound":    {"V": fit_compound["V"], "N": fit_compound["N"], "alpha": round(abs(fit_compound["slope"]), 4), "R2": round(fit_compound["r2"], 4)},
+            "morfessor_track1b": {"V": fit_morph1b["V"],  "N": fit_morph1b["N"],  "alpha": round(abs(fit_morph1b["slope"]), 4),  "R2": round(fit_morph1b["r2"], 4)},
+            "morfessor_track1":  {"V": fit_morph1["V"],   "N": fit_morph1["N"],   "alpha": round(abs(fit_morph1["slope"]), 4),   "R2": round(fit_morph1["r2"], 4)},
+            "mandarin_syllables":{"V": fit_mand["V"],     "N": fit_mand["N"],     "alpha": round(abs(fit_mand["slope"]), 4),     "R2": round(fit_mand["r2"], 4)},
+            "bengalese_finch":   {"V": fit_bird["V"],     "N": fit_bird["N"],     "alpha": round(abs(fit_bird["slope"]), 4),     "R2": round(fit_bird["r2"], 4), "note": "V<20 fit unreliable"},
         },
         "mi_decay": {
             lbl: {

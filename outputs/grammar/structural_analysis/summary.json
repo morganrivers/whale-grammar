@@ -23,6 +23,13 @@
       "N": 39130,
       "alpha": 1.5059,
       "R2": 0.8817
+    },
+    "bengalese_finch": {
+      "V": 9,
+      "N": 7652,
+      "alpha": 0.6828,
+      "R2": 0.9807,
+      "note": "V<20 fit unreliable"
     }
   },
   "mi_decay": {
@@ -46,6 +53,13 @@
       "power_law_R2": 0.4778,
       "exponential_lam": 0.0076,
       "exponential_R2": 0.1777
+    },
+    "Bengalese finch (birdsong)": {
+      "preferred": "exponential",
+      "power_law_alpha": 0.7304,
+      "power_law_R2": 0.9247,
+      "exponential_lam": 0.1019,
+      "exponential_R2": 0.954
     }
   },
   "repair": {
@@ -60,6 +74,10 @@
     "Mandarin syllables": {
       "rounds": 80,
       "final_ratio": 0.8591
+    },
+    "Bengalese finch (birdsong)": {
+      "rounds": 80,
+      "final_ratio": 0.1317
     }
   },
   "pause_asymmetry": {
