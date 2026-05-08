@@ -120,22 +120,49 @@ birth-event encounter (July 8 2023); the numbers are just consecutive tag-roll I
 
 The **wall-clock start time** of each acoustic recording (and its GPS fix) is stored in CETI's internal
 AWS S3 pipeline under `raw/<ingestion-date>/<device-folder>/`. This metadata is not included in the
-public birth data release; `date` is hardcoded to "2023" and no GPS is published.
+public birth CSV; `date` is hardcoded to "2023" and no GPS is published.
 
-### Drone video timestamps
+**Practical paths to recover acoustic wall-clock time:**
+1. The public data portal at `https://ceti-birth.csail.mit.edu/` — may include acoustic timing metadata
+2. The Gero 2026 Science paper Zenodo (`10.5281/zenodo.18016792`) — the companion analysis combined acoustic and video, so the alignment must exist in those materials
+3. Birth-transition anchor: the birth occurred at 15:45:45 UTC; coda style shifts at that moment (Sharma 2025 documents them explicitly) can pin at least some recordings to within a few minutes
+4. Cross-recording acoustic fingerprinting: identical coda sequences appearing at different TfS offsets in two recordings indicate simultaneous tags → their start-time difference is recoverable
 
-The companion video data (Science paper) uses DJI Mavic 3 drone footage. Raw video files are named
-with Unix timestamps in milliseconds (e.g., `1688827660979.MP4`). These ARE wall-clock times:
+### Drone video: complete wall-clock timeline known
 
-```python
-import datetime
-datetime.datetime.utcfromtimestamp(1688827660979 / 1000)
-# → 2023-07-08 14:47:40.979000 UTC  (~58 min before birth)
-```
+The companion video data uses DJI Mavic 3 footage from two synchronized drones
+(CETI-DJI_MAVIC3-1 and DSWP-DJI_MAVIC3-2). Raw video files are named with Unix timestamps
+in milliseconds — these ARE wall-clock times. The `segmentations_infrastructure` submodule
+(github.com/Project-CETI/segmentations_infrastructure) contains the full per-clip time bounds
+in baby-epoch seconds, which decode to:
 
-The birth itself occurred at **2023-07-08 15:45:45 UTC** (11:45:45 EDT). The video dataset
-spans from ~62 min pre-birth to ~175 min post-birth across 17 video clips from two drones
-(CETI-DJI_MAVIC3-1 and DSWP-DJI_MAVIC3-2).
+| Video (Unix ms)   | UTC start  | Baby-epoch | Phase           |
+|-------------------|-----------|------------|-----------------|
+| 1688827433752     | 14:43:53  | −3711 s    | Pre-birth −62 min |
+| 1688827660979     | 14:47:40  | −3484 s    | Pre-birth −58 min |
+| 1688827887072     | 14:51:27  | −3258 s    | Pre-birth −54 min |
+| 1688828965144     | 15:09:25  | −2180 s    | Pre-birth −36 min |
+| 1688829151574     | 15:12:31  | −1993 s    | Pre-birth −33 min |
+| 1688829193016     | 15:13:13  | −1952 s    | Pre-birth −33 min |
+| 1688830733272     | 15:38:53  | −412 s     | Pre-birth −7 min  |
+| 1688830960531     | 15:42:40  | −184 s     | Pre-birth −3 min  |
+| 1688831187858     | 15:46:27  | +43 s      | **During/post birth** |
+| 1688831228731     | 15:47:08  | +84 s      | Post-birth +1 min |
+| 1688831374924     | 15:49:34  | +230 s     | Post-birth +4 min |
+| 1688831602631     | 15:53:22  | +458 s     | Post-birth +8 min |
+| 1688831830406     | 15:57:10  | +685 s     | Post-birth +11 min |
+| 1688832540499     | 16:09:00  | +1395 s    | Post-birth +23 min |
+| 1688832767759     | 16:12:47  | +1623 s    | Post-birth +27 min |
+| 1688832995052     | 16:16:35  | +1850 s    | Post-birth +31 min |
+| 1688841618482     | 18:40:18  | +10473 s   | Post-birth +175 min |
+
+Birth: **2023-07-08 15:45:45 UTC** (11:45:45 EDT).
+
+The drone HDF5 files (available from `ceti-birth.csail.mit.edu`) contain per-frame:
+aligned wall-clock timestamps, GPS latitude/longitude, altitude, horizontal and vertical
+speed, and full camera settings. The video and acoustic systems are separate — the 17 drone
+video clips listed above are NOT the same objects as the 17 acoustic recordings (CETI23-277–294).
+The drones flew in short bursts; the acoustic tags ran continuously on individual whales.
 
 **Individual whale names** are present in the video tracking data but are NOT linked to the acoustic
 ICI dataset. The named individuals in Unit A (11 whales: 8 adults, 3 calves):
